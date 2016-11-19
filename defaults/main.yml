@@ -1,0 +1,10 @@
+---
+# Docker Engine configuration
+# --------------------------------
+
+# List of packages to install
+docker__packages_name:
+  - docker-engine
+
+# The name of the systemd docker service
+docker__service_name: docker
