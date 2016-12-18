@@ -1,0 +1,14 @@
+---
+- name: Add Docker repo for Yum based hosts
+  copy:
+    src: docker.repo
+    dest: '/etc/yum.repos.d/docker.repo'
+  tags: ['docker']
+
+- name: Install the latest version of docker engine
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - '{{ docker__packages_name }}'
+  tags: ['docker']

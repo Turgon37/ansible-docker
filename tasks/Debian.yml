@@ -1,0 +1,5 @@
+---
+- name: Install docker engine from web script
+  shell: >
+    curl -sSL "https://get.docker.com" | sh
+  tags: ['docker']

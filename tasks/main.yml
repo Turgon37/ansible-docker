@@ -8,19 +8,8 @@
       skip: true
   tags: ['docker']
 
-- name: Add Docker repo for Yum based hosts
-  copy:
-    src: docker.repo
-    dest: '/etc/yum.repos.d/docker.repo'
-  when: ansible_os_family == 'RedHat'
-  tags: ['docker']
-
-- name: Install the latest version of docker engine
-  package:
-    name: '{{ item }}'
-    state: latest
-  with_items:
-    - '{{ docker__packages_name }}'
+- name: Run the OS specific install tasks
+  include: "{{ ansible_os_family }}.yml"
   tags: ['docker']
 
 - name: Ensure docker daemon is started and enabled on boot
