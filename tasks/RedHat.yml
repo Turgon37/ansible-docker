@@ -18,7 +18,7 @@
 - name: Create sysconfig/docker configuration
   become: yes
   template:
-    src: docker.sysconfig.j2
+    src: docker.config.j2
     dest: /etc/sysconfig/docker
     owner: root
     group: root
