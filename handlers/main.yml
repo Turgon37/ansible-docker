@@ -1,0 +1,10 @@
+---
+# handlers file for docker
+
+- name: restart docker
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: "{{ docker__service_name }}"
+  changed_when: docker_config_result|changed or docker_init_result|changed
+  tags: ['docker']

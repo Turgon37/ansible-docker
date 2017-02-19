@@ -8,3 +8,14 @@ docker__packages_name:
 
 # The name of the systemd docker service
 docker__service_name: docker
+
+
+docker__host: "unix:///var/run/docker.sock"
+#docker__storage_driver:
+
+docker__storage_opt : {}
+
+#docker__tlsverify:
+#docker__tlscacert:
+#docker__tlscert:
+#docker__tlskey:
