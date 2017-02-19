@@ -1,7 +1,26 @@
 ---
+- name: Check if docker repository is installed
+  register: docker_aptconf
+  check_mode: no
+  stat:
+    path: /etc/apt/sources.list.d/docker.list
+  tags: ['docker']
+
 - name: Install docker engine from web script
+  become: true
   shell: >
     curl -sSL "https://get.docker.com" | sh
+  when: not docker_aptconf.stat.exists
+  tags: ['docker']
+
+- name: Install the latest version of docker engine
+  become: yes
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - '{{ docker__packages_name }}'
+  when: docker_aptconf.stat.exists
   tags: ['docker']
 
 - name: Create sysconfig/docker configuration
