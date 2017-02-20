@@ -9,6 +9,7 @@ docker__packages_name:
 # The name of the systemd docker service
 docker__service_name: docker
 
+#docker__config_vars_file: 
 
 docker__host: "unix:///var/run/docker.sock"
 #docker__storage_driver:

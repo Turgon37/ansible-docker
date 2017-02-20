@@ -18,6 +18,27 @@
   include: "{{ ansible_os_family }}.yml"
   tags: ['docker']
 
+- name: Create docker configuration vars
+  become: yes
+  template:
+    src: docker.config.j2
+    dest: "{{ docker__config_vars_file }}"
+    owner: root
+    group: root
+    mode: 0640
+  notify:
+   - restart docker
+  tags: ['docker']
+
+- name: Create systemd configuration file
+  become: yes
+  copy:
+    src: "docker.service.{{ ansible_os_family }}"
+    dest: '/etc/systemd/system/docker.service'
+  notify:
+    - restart docker
+  tags: ['docker']
+
 - name: Ensure docker daemon is started and enabled on boot
   become: yes
   service:

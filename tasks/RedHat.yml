@@ -14,26 +14,3 @@
   with_items:
     - '{{ docker__packages_name }}'
   tags: ['docker']
-
-- name: Create sysconfig/docker configuration
-  become: yes
-  template:
-    src: docker.config.j2
-    dest: /etc/sysconfig/docker
-    owner: root
-    group: root
-    mode: 0640
-  register: docker_config_result
-  notify:
-   - restart docker
-  tags: ['docker']
-
-- name: Create systemd configuration file
-  become: yes
-  copy:
-    src: docker.service.redhat
-    dest: '/etc/systemd/system/docker.service'
-  register: docker_init_result
-  notify:
-    - restart docker
-  tags: ['docker']
