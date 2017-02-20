@@ -1,1 +1,2 @@
 ---
+docker__config_vars_file: "/etc/default/docker"
