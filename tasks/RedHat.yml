@@ -1,9 +1,27 @@
 ---
+- name: Check if old repository file exist
+  stat:
+    path: '/etc/yum.repos.d/docker.repo'
+  register: _docker_old_repo
+
+- name: Remove old Docker repo for Yum based hosts
+  become: yes
+  file:
+    state: absent
+    name: '/etc/yum.repos.d/docker.repo'
+  when: _docker_old_repo.stat.exists == True
+  tags: ['docker']
+
+- name: Check if new repository file exist
+  stat:
+    path: '/etc/yum.repos.d/docker-ce.repo'
+  register: _docker_repo
+
 - name: Add Docker repo for Yum based hosts
   become: yes
-  copy:
-    src: docker.repo
-    dest: '/etc/yum.repos.d/docker.repo'
+  shell: >
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  when: _docker_repo.stat.exists == False
   tags: ['docker']
 
 - name: Install the latest version of docker engine
