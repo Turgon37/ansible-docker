@@ -1,4 +1,16 @@
 ---
+- name: Install required tools
+  become: yes
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+  tags: ['docker']
+
 - name: Check if docker repository is installed
   register: docker_aptconf
   check_mode: no

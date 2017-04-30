@@ -1,8 +1,16 @@
 ---
+- name: Install required tools
+  become: yes
+  package:
+    name: 'yum-utils'
+    state: latest
+  tags: ['docker']
+
 - name: Check if old repository file exist
   stat:
     path: '/etc/yum.repos.d/docker.repo'
   register: _docker_old_repo
+  tags: ['docker']
 
 - name: Remove old Docker repo for Yum based hosts
   become: yes
@@ -16,6 +24,7 @@
   stat:
     path: '/etc/yum.repos.d/docker-ce.repo'
   register: _docker_repo
+  tags: ['docker']
 
 - name: Add Docker repo for Yum based hosts
   become: yes
