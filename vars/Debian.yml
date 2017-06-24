@@ -1,2 +1,4 @@
 ---
 docker__config_vars_file: "/etc/default/docker"
+
+docker__apt_list_file: "/etc/apt/sources.list.d/docker.list"
