@@ -7,6 +7,10 @@ This roles allow installation of the Docker engine
 
 This role is available for CentOS and Debian (with systemd only !!)
 
+## Requirements
+
+This role require the network role to work [Network role](https://github.com/Turgon37/ansible-network)
+
 ## Features
 
 At this day the role can be used to :
@@ -30,3 +34,18 @@ At this day the role can be used to :
 | docker__tlscacert      | The path to the certificate authority                                                       |
 | docker__tlscert        | The path to the dockerd's certificate                                                       |
 | docker__tlskey         | The path to the dockerd's private key                                                       |
+
+
+
+### Exemples
+
+  * Exemple of configuration with network socket
+
+```
+docker__host: "tcp://10.50.57.10:2376"
+docker__storage_driver: overlay
+docker__tlsverify: True
+docker__tlscacert: /etc/docker/ssl/ca.pem
+docker__tlscert: /etc/docker/ssl/cert.pem
+docker__tlskey: /etc/docker/ssl/cert.key
+```
