@@ -2,6 +2,9 @@
 # Docker Engine configuration
 # --------------------------------
 
+# Simple placeholder to allow other roles to detect this role
+docker__role: True
+
 # List of packages to install
 docker__packages_name:
   - docker-ce

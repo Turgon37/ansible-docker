@@ -28,8 +28,7 @@
 - name: Add docker repository for ARM
   become: true
   shell: >
-    echo "deb [arch=armhf] https://download.docker.com/linux/debian \
-         $(lsb_release -cs) stable" | \
+    echo "deb [arch=armhf] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | \
         tee {{ docker__apt_list_file }}
   when: ansible_machine == "armv7l" and not docker_aptconf.stat.exists
 
