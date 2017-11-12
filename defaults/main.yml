@@ -4,6 +4,7 @@
 # Simple placeholder to allow other roles to detect this role
 docker_server__role: True
 
+# Enable fact deployment
 docker_server__facts: False
 
 # List of package to remove
@@ -17,6 +18,9 @@ docker_server__compose_version: 1.17.1
 
 # The name of the systemd docker service
 docker_server__service_name: docker
+
+# Set to False for host that run AWX or any other ansible scheduler
+docker_server__allow_service_restart: True
 
 # Base url for all repository urls
 docker_server__repository_base_url: 'https://download.docker.com'
