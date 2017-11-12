@@ -1,57 +1,28 @@
 ---
+# tasks file for docker-server
+
 - name: Include the OS specific variables
   include_vars: "{{ item }}"
   with_first_found:
     - files:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
         - "{{ ansible_distribution }}.yml"
         - "{{ ansible_os_family }}.yml"
+        - "defaults.yml"
       skip: true
-  tags: ['docker']
+  tags: ['always']
 
-- name: Assert docker variables
-  assert:
-    that:
-      - "(docker__tlscert is defined and docker__tlskey is defined) or ( docker__tlscert is not defined and docker__tlskey is not defined)"
-  tags: ['docker']
+- import_tasks: init.yml
+  tags: ['always']
 
-- name: Run the OS specific install tasks
-  include: "{{ ansible_os_family }}.yml"
-  tags: ['docker']
+- import_tasks: install.yml
+  tags: ['docker-server', 'docker-server-install']
 
-- name: Create docker configuration vars
-  become: yes
-  template:
-    src: docker.config.j2
-    dest: "{{ docker__config_vars_file }}"
-    owner: root
-    group: root
-    mode: 0640
-  notify:
-   - restart docker
-  tags: ['docker']
+- import_tasks: configure.yml
+  tags: ['docker-server', 'docker-server-configure']
 
-- name: Create systemd configuration file
-  become: yes
-  copy:
-    src: "docker.service.{{ ansible_os_family }}"
-    dest: '/etc/systemd/system/docker.service'
-  notify:
-    - restart docker
-  tags: ['docker']
+- import_tasks: service.yml
+  tags: ['docker-server', 'docker-server-service']
 
-- name: Ensure docker daemon is started and enabled on boot
-  become: yes
-  service:
-    name: "{{ docker__service_name }}"
-    state: started
-    enabled: yes
-  changed_when: False
-  tags: ['docker']
-
-- name: Download Docker compose tool
-  shell: >
-    curl -L "https://github.com/docker/compose/releases/download/1.14.0/docker-compose-$(uname -s)-$(uname -m)"
-    -o /usr/local/bin/docker-compose
-    && chmod +x /usr/local/bin/docker-compose
-  when: ansible_architecture == "x86_64"
-  tags: ['docker']
+- include_tasks: facts.yml
+  when: docker_server__facts|bool

@@ -1,0 +1,20 @@
+---
+
+- name: Install required tools
+  package:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+
+- name: Check if new repository file exist
+  stat:
+    path: '/etc/yum.repos.d/docker-ce.repo'
+  register: _docker_server__repo
+  check_mode: no
+
+- name: Add Docker repo for Yum based hosts
+  command: yum-config-manager --add-repo {{ docker_server__repository_base_url }}/linux/centos/docker-ce.repo
+  when: not _docker_server__repo.stat.exists

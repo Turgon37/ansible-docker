@@ -1,0 +1,21 @@
+---
+
+- name: Remove conflicting packages
+  package:
+    name:  '{{ item }}'
+    state: absent
+  with_items: '{{ docker_server__conflict_packages }}'
+
+- name: Run the OS specific install tasks
+  include_tasks: "install-{{ ansible_os_family }}.yml"
+
+- name: Install docker engine
+  package:
+    name:  '{{ docker_server__packages_name }}'
+    state: present
+
+- name: Download Docker compose tool
+  shell: >
+    curl -L "https://github.com/docker/compose/releases/download/{{ docker_server__compose_version }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    && chmod +x /usr/local/bin/docker-compose
+  when: ansible_architecture == "x86_64"

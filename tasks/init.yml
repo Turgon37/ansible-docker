@@ -1,0 +1,6 @@
+---
+
+- name: Assert docker variables
+  assert:
+    that:
+      - (docker__tlscert is defined and docker__tlskey is defined) or ( docker__tlscert is not defined and docker__tlskey is not defined)

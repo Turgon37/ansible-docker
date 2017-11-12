@@ -1,8 +1,7 @@
 ---
-# handlers file for docker
+# handlers file for docker-server
 
-- name: restart docker
-  systemd:
+- name: restart-docker-server
+  service:
+    name:  '{{ docker_server__service_name }}'
     state: restarted
-    daemon_reload: yes
-    name: "{{ docker__service_name }}"

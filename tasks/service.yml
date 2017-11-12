@@ -1,0 +1,30 @@
+---
+
+- name: install systemd unit file
+  copy:
+    src: "docker.service.{{ ansible_os_family }}"
+    dest: '/etc/systemd/system/{{ docker_server__service_name }}.service'
+  when: ansible_service_mgr == 'systemd'
+  notify: ['restart-docker-server']
+  register: _docker_server__service
+
+- name: remove sysvinit unit file
+  file:
+    path:  /etc/init.d/docker
+    state: absent
+  when: ansible_service_mgr == 'systemd'
+
+- name: Reload systemd
+  systemd:
+    name:          '{{ docker_server__service_name }}'
+    enabled:       yes
+    daemon_reload: yes
+  when: _docker_server__service|changed and ansible_service_mgr == 'systemd'
+
+- meta: flush_handlers
+
+- name: Ensure Docker is started and enabled on boot
+  service:
+    name:    '{{ docker_server__service_name }}'
+    enabled: yes
+    state:   started

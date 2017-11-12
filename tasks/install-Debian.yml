@@ -1,0 +1,36 @@
+---
+
+- name: Install required tools
+  package:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg2
+    - software-properties-common
+
+- name: Add docker repository GPG key to keyring
+  apt_key:
+    data:  '{{ item.data }}'
+    state: "{{ item.state|d('present') }}"
+  with_items: '{{ docker_server__gpg_keys[(
+                    ansible_lsb.id if ansible_lsb.id is defined else (
+                      ansible_distribution if ansible_distribution is defined else (
+                        ansible_os_family
+                      )
+                    )
+                )] }}'
+
+- name: Compute repository url
+  shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} edge'
+  register: _docker_server_repository_url
+  changed_when: False
+  check_mode: no
+
+- name: Add APT repository
+  apt_repository:
+    filename: docker
+    repo:     '{{ _docker_server_repository_url.stdout }}'
+    state:    present

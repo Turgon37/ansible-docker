@@ -1,0 +1,10 @@
+---
+
+- name: Configure docker service environment variables
+  template:
+    src:   docker.config.j2
+    dest:  '{{ docker_server__config_vars_file }}'
+    owner: root
+    group: root
+    mode:  0640
+  notify: ['restart-docker-server']
