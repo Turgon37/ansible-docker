@@ -3,7 +3,6 @@
 docker_server__conflict_packages:
   - docker
   - docker-common
-  - docker-selinux
   - docker-engine
 
 docker_server__config_vars_file: "/etc/sysconfig/docker"
