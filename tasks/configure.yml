@@ -1,5 +1,18 @@
 ---
 
+- name: "Ensure socket group '{{ docker_server__socket_group }}' is present"
+  group:
+    name:   '{{ docker_server__socket_group }}'
+    system: yes
+    state:  present
+
+- name: Add users to socket group
+  user:
+    name:   '{{ item }}'
+    append: yes
+    groups: '{{ docker_server__socket_group }}'
+  with_items: '{{ docker_server__socket_group_users }}'
+
 - name: Configure docker service environment variables
   template:
     src:   docker.config.j2

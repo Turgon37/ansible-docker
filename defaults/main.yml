@@ -19,6 +19,10 @@ docker_server__compose_version: 1.17.1
 # The name of the systemd docker service
 docker_server__service_name: docker
 
+# Restricted group allowed to access to socket
+docker_server__socket_group: docker
+docker_server__socket_group_users: []
+
 # Set to False for host that run AWX or any other ansible scheduler
 docker_server__allow_service_restart: True
 

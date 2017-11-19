@@ -4,5 +4,5 @@
 
 # Docker configuration file
 
-OPTIONS="-H {{ docker_server__host }} {% if docker_server__storage_driver is defined %}--storage-driver={{ docker_server__storage_driver }}{% endif %}
+OPTIONS="-H {{ docker_server__host }} --group {{ docker_server__socket_group }} {% if docker_server__storage_driver is defined %}--storage-driver={{ docker_server__storage_driver }}{% endif %}
  {% for key, value in docker_server__storage_opt | dictsort %}--storage-opt={{ key }}={{ value }} {% endfor %} {% if docker_server__tlsverify is defined and docker_server__tlsverify|bool %}--tlsverify{% endif %} {% if docker_server__tlscacert is defined %}--tlscacert={{ docker_server__tlscacert }}{% endif %} {% if docker_server__tlscert is defined %}--tlscert={{ docker_server__tlscert }}{% endif %} {% if docker_server__tlskey is defined %}--tlskey={{ docker_server__tlskey }}{% endif %}"
