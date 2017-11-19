@@ -5,7 +5,7 @@
 docker_server__role: True
 
 # Enable fact deployment
-docker_server__facts: False
+docker_server__facts: True
 
 # List of package to remove
 docker_server__conflict_packages: []
