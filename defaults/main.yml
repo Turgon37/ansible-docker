@@ -34,6 +34,8 @@ docker_server__compose_path: /usr/local/bin/docker-compose
 ## Docker service
 # The name of the systemd docker service
 docker_server__service_name: docker
+
+# If true the docker service will be started and enabled
 docker_server__service_enabled: True
 
 # If this is set to true, ansible will automatically restart docker daemon on changes
