@@ -28,3 +28,9 @@
     name:    '{{ docker_server__service_name }}'
     enabled: '{{ docker_server__service_enabled|bool }}'
     state:   "{{ docker_server__service_enabled|bool|ternary('started', 'stopped') }}"
+
+- name: Remove stamp file if docker daemon is disabled
+  file:
+    path:  '{{ docker_server__service_restart_stamp_file }}'
+    state: absent
+  when: not docker_server__service_enabled|bool
