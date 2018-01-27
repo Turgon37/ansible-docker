@@ -46,7 +46,7 @@ The variables that can be passed to this role and a brief description about them
 | docker_server__compose_state              | String       | The state of docker-compose tool in 'present', 'absent'                                                                                                                                                                                       |
 | docker_server__service_enabled            | Boolean      | Enable or not the docker service on the host                                                                                                                                                                                                  |
 | docker_server__service_restartable        | Boolean      | If the docker configuration change ansible will automatically restart the service unless this variable is set to False. In others words, set this to True if you want ansible automatically restart the docker daemon on configuration changes|
-| docker_server__service_restart_stamp_file | String       | If service_restartable (above) is set to False, ansible will touch this path                                                                                                                                                                  |
+| docker_server__service_restart_stamp_file | String       | If service_restartable (above) is set to False, ansible will touch this path instead of restarting docker. This allow you to test the presence of this file with your monitoring tool                                                         |
 
 :exclamation: In a production environment I recommend to set docker_server__service_restartable to False and to handle manually the docker service's restarts
 

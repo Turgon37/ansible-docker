@@ -21,6 +21,15 @@ docker_server__packages_name: 'docker-{{ docker_server__edition }}'
 # Base url for all repository urls
 docker_server__repository_base_url: 'https://download.docker.com'
 
+# Used only for Debian/Ubuntu. Switch 'stable' to 'edge' if needed.
+docker_server__repository_release_channel: stable
+
+# List of available release channels
+docker_server__repository_available_release_channels:
+  - stable
+  - edge
+  - test
+
 # Version of docker-compose to download
 docker_server__compose_version: 1.17.1
 

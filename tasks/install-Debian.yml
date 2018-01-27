@@ -22,7 +22,7 @@
                   ) }}'
 
 - name: Compute repository url
-  shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} edge'
+  shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} {{ docker_server__repository_release_channel }}'
   register: _docker_server_repository_url
   changed_when: False
   check_mode: no
