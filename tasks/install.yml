@@ -6,17 +6,17 @@
     state: absent
   with_items: '{{ docker_server__conflict_packages }}'
 
-- name: Run the OS specific install tasks
-  include_tasks: "install-{{ ansible_os_family }}.yml"
+- include_tasks: "install-{{ item }}.yml"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+        - "{{ ansible_distribution }}.yml"
+        - "{{ ansible_os_family }}.yml"
+      skip: true
 
 - name: Install docker engine
   package:
     name:  '{{ docker_server__packages_name }}'
     state: present
 
-- name: Download Docker compose tool
-  get_url:
-    url:  'https://github.com/docker/compose/releases/download/{{ docker_server__compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
-    dest: /usr/local/bin/docker-compose
-    mode: 0755
-  when: ansible_architecture == "x86_64"
+- include_tasks: install-compose.yml

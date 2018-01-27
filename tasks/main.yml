@@ -26,3 +26,4 @@
 
 - include_tasks: facts.yml
   when: docker_server__facts|bool
+  tags: ['docker-server', 'docker-server-facts']

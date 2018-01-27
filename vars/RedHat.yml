@@ -5,4 +5,4 @@ docker_server__conflict_packages:
   - docker-common
   - docker-engine
 
-docker_server__config_vars_file: "/etc/sysconfig/docker"
+docker_server__config_vars_file: /etc/sysconfig/docker

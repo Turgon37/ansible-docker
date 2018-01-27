@@ -1,8 +1,16 @@
 ---
 # handlers file for docker-server
 
-- name: restart-docker-server
+- name: restart-docker-daemon
   service:
     name:  '{{ docker_server__service_name }}'
     state: restarted
-  when: docker_server__allow_service_restart|bool
+  when: docker_server__service_restartable|bool
+  listen: restart-docker-server
+
+- name: mark-docker-daemon-to-restart
+  file:
+    path:  '{{ docker_server__service_restart_stamp_file }}'
+    state: touch
+  when: not docker_server__service_restartable|bool
+  listen: restart-docker-server

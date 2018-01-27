@@ -1,0 +1,14 @@
+---
+
+- name: Download Docker compose tool for x86_64 machines
+  get_url:
+    url:  'https://github.com/docker/compose/releases/download/{{ docker_server__compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
+    dest: '{{ docker_server__compose_path }}'
+    mode: 0755
+  when: ansible_architecture == "x86_64" and docker_server__compose_state|d('present') == 'present'
+
+- name: Remove docker-compose tool
+  file:
+    path:  '{{ docker_server__compose_path }}'
+    state: absent
+  when: docker_server__compose_state|d('present') != 'present'

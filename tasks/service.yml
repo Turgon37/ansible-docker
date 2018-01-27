@@ -1,14 +1,14 @@
 ---
 
-- name: install systemd unit file
-  copy:
-    src: "docker.service.{{ ansible_os_family }}"
+- name: Install systemd unit file
+  template:
+    src:  'docker.service.{{ ansible_os_family }}.j2'
     dest: '/etc/systemd/system/{{ docker_server__service_name }}.service'
   when: ansible_service_mgr == 'systemd'
   notify: ['restart-docker-server']
   register: _docker_server__service
 
-- name: remove sysvinit unit file
+- name: Remove sysvinit unit file
   file:
     path:  /etc/init.d/docker
     state: absent
@@ -26,5 +26,5 @@
 - name: Ensure Docker is started and enabled on boot
   service:
     name:    '{{ docker_server__service_name }}'
-    enabled: yes
-    state:   started
+    enabled: '{{ docker_server__service_enabled|bool }}'
+    state:   "{{ docker_server__service_enabled|bool|ternary('started', 'stopped') }}"

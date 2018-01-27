@@ -7,27 +7,49 @@ docker_server__role: True
 # Enable fact deployment
 docker_server__facts: True
 
+
+## Docker installation
 # List of package to remove
 docker_server__conflict_packages: []
 
+# Edition can be one of: 'ce' (Community Edition) or 'ee' (Enterprise Edition).
+docker_server__edition: 'ce'
+
 # Name of main docker package
-docker_server__packages_name: docker-ce
+docker_server__packages_name: 'docker-{{ docker_server__edition }}'
+
+# Base url for all repository urls
+docker_server__repository_base_url: 'https://download.docker.com'
 
 # Version of docker-compose to download
 docker_server__compose_version: 1.17.1
 
+# If true the docker-compose tool will be installed
+docker_server__compose_state: present
+
+# Path to the docker-compose tool binary
+docker_server__compose_path: /usr/local/bin/docker-compose
+
+
+## Docker service
 # The name of the systemd docker service
 docker_server__service_name: docker
+docker_server__service_enabled: True
 
+# If this is set to true, ansible will automatically restart docker daemon on changes
+docker_server__service_restartable: True
+
+# Path to the must restart stamp file
+docker_server__service_restart_stamp_file: '/var/local/docker-must-restart-stamp'
+
+
+## Docker configuration
 # Restricted group allowed to access to socket
 docker_server__socket_group: docker
 docker_server__socket_group_users: []
 
-# Set to False for host that run AWX or any other ansible scheduler
-docker_server__allow_service_restart: True
-
-# Base url for all repository urls
-docker_server__repository_base_url: 'https://download.docker.com'
+# The base directory of docker data
+docker_server__directory: /var/lib/docker
 
 # Path to service's environment variables
 #docker_server__config_vars_file:

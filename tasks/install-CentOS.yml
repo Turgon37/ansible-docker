@@ -11,10 +11,10 @@
 
 - name: Check if new repository file exist
   stat:
-    path: '/etc/yum.repos.d/docker-ce.repo'
+    path: '/etc/yum.repos.d/docker-{{ docker_server__edition }}.repo'
   register: _docker_server__repo
   check_mode: no
 
 - name: Add Docker repo for Yum based hosts
-  command: yum-config-manager --add-repo {{ docker_server__repository_base_url }}/linux/centos/docker-ce.repo
+  command: 'yum-config-manager --add-repo {{ docker_server__repository_base_url }}/linux/centos/docker-{{ docker_server__edition }}.repo'
   when: not _docker_server__repo.stat.exists

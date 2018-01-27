@@ -5,4 +5,4 @@ docker_server__conflict_packages:
   - docker-engine
   - docker.io
 
-docker_server__config_vars_file: "/etc/default/docker"
+docker_server__config_vars_file: /etc/default/docker
