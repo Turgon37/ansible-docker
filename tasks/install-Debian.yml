@@ -7,13 +7,13 @@
   with_items:
     - apt-transport-https
     - ca-certificates
-    - curl
     - gnupg2
     - software-properties-common
 
-- name: Add docker repository GPG key to keyring
+- name: Add docker repository GPG key to apt keyring
   apt_key:
-    data:  '{{ item.data }}'
+    url:   '{{ item.url|d(omit) }}'
+    data:  '{{ item.data|d(omit) }}'
     state: "{{ item.state|d('present') }}"
   with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
                     docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
