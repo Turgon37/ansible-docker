@@ -31,7 +31,7 @@ docker_server__repository_available_release_channels:
   - test
 
 # Version of docker-compose to download
-docker_server__compose_version: 1.17.1
+docker_server__compose_version: 1.18.0
 
 # If true the docker-compose tool will be installed
 docker_server__compose_state: present
