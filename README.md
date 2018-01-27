@@ -1,51 +1,69 @@
-Ansible Role Docker
-========
+Ansible Role Docker server
+=========
 
-This roles allow installation of the Docker engine
+[![Build Status](https://travis-ci.org/Turgon37/ansible-docker-server.svg?branch=master)](https://travis-ci.org/Turgon37/ansible-docker-server)
 
-## OS Family
+:warning: This role is under development, some important (and possibly breaking) changes may happend. Don't use it in production level environments but you can eventually base your own role on this one :hammer:
 
-This role is available for CentOS and Debian (with systemd only !!)
+:grey_exclamation: Before using this role, please know that all my Ansible roles are fully written and accustomed to my IT infrastructure. So, even if they are as generic as possible they will not necessarily fill your needs, I advice you to carrefully analyse what they do and evaluate their capability to be installed securely on your servers.
 
-## Requirements
-
-This role require the network role to work [Network role](https://github.com/Turgon37/ansible-network)
+**This roles configure the docker daemon.**
 
 ## Features
 
-At this day the role can be used to :
+Currently this role provide the following features :
 
-  * Install Docker engine
-  * Configure Docker engine service (via systemd)
-  * Install docker-compose (if arch is x86)
+  * docker engine installation
+  * docker engine configuration
+  * docker engine systemd service file
+  * install the docker-compose tool (if host architecture is x86)
+  * [local facts](#facts)
 
-## Configuration
+## Requirements
 
-  * The role accept this list of parameters
+### OS Family
 
-| Name                   | Description                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------- |
-| docker__packages_name  | The list of packages to install                                                             |
-| docker__service_name   | The name of the systemd service                                                             |
-| docker__host           | The address on which dockerd will listen (default to "unix:///var/run/docker.sock")         |
-| docker__storage_driver | The name of the storage driver to use                                                       |
-| docker__storage_opt    | The dictionnary of storage options (each key value will be put into the configuration file  |
-| docker__tlsverify      | If true, enable tls certificate verification                                                |
-| docker__tlscacert      | The path to the certificate authority                                                       |
-| docker__tlscert        | The path to the dockerd's certificate                                                       |
-| docker__tlskey         | The path to the dockerd's private key                                                       |
+This role is available for Debian 8/9 and CentOS
+
+### Dependencies
+
+--
 
 
+## Role Variables
 
-### Exemples
+The variables that can be passed to this role and a brief description about them are as follows:
 
-  * Exemple of configuration with network socket
+| Name                 | Types/Values   | Description                                                                                |
+| ---------------------| ---------------|------------------------------------------------------------------------------------------- |
+| docker_server__facts | Boolean        | Install the local fact script                                                              |
+
+
+## Facts
+
+By default the local fact are installed and expose all variables available with the docker info command line.
+
+You can use this command to get an idea of available keys
 
 ```
-docker__host: "tcp://10.50.57.10:2376"
-docker__storage_driver: overlay
-docker__tlsverify: True
-docker__tlscacert: /etc/docker/ssl/ca.pem
-docker__tlscert: /etc/docker/ssl/cert.pem
-docker__tlskey: /etc/docker/ssl/cert.key
+docker version --format '{{json .}}'
 ```
+
+
+## Examples Playbooks
+
+To use this role create or update your playbook according the following examples :
+
+  * Exemple of configuration with classical FILES backend
+
+```
+    - hosts: servers
+      roles:
+         - docker-server
+      vars:
+```
+
+
+## License
+
+MIT
