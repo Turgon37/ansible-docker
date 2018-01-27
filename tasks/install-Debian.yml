@@ -15,13 +15,11 @@
   apt_key:
     data:  '{{ item.data }}'
     state: "{{ item.state|d('present') }}"
-  with_items: '{{ docker_server__gpg_keys[(
-                    ansible_lsb.id if ansible_lsb.id is defined else (
-                      ansible_distribution if ansible_distribution is defined else (
-                        ansible_os_family
-                      )
+  with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
+                    docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
+                      docker_server__gpg_keys[ansible_os_family] if (ansible_os_family in docker_server__gpg_keys) else ([])
                     )
-                )] }}'
+                  ) }}'
 
 - name: Compute repository url
   shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} edge'

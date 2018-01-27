@@ -6,12 +6,14 @@
     state: absent
   with_items: '{{ docker_server__conflict_packages }}'
 
-- include_tasks: "install-{{ item }}.yml"
+- include_tasks: '{{ file_item }}'
   with_first_found:
     - files:
-        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}'
-        - '{{ ansible_distribution }}'
-        - '{{ ansible_os_family }}'
+        - 'install-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - 'install-{{ ansible_distribution }}.yml'
+        - 'install-{{ ansible_os_family }}.yml'
+  loop_control:
+    loop_var: file_item
 
 - name: Install docker engine
   package:
