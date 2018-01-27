@@ -26,7 +26,7 @@ Currently this role provide the following features :
 This role is available for
 
   * Debian/Raspbian 8/9
-  * CentOS
+  * CentOS 7
 
 ### Dependencies
 
