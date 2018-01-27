@@ -9,14 +9,13 @@
 - include_tasks: "install-{{ item }}.yml"
   with_first_found:
     - files:
-        - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
-        - "{{ ansible_distribution }}.yml"
-        - "{{ ansible_os_family }}.yml"
-      skip: true
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}'
+        - '{{ ansible_distribution }}'
+        - '{{ ansible_os_family }}'
 
 - name: Install docker engine
   package:
     name:  '{{ docker_server__packages_name }}'
     state: present
 
-- include_tasks: install-compose.yml
+- import_tasks: install-compose.yml
