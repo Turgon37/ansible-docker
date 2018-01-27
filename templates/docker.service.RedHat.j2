@@ -11,7 +11,7 @@ Type=notify
 # for containers run by docker
 {% if not docker_server__service_restartable|bool %}
 # Remove must restart stamp
-ExecStartPre=-rm -f {{ docker_server__service_restart_stamp_file }}
+ExecStartPre=-/usr/bin/env rm -f {{ docker_server__service_restart_stamp_file }}
 {% endif %}
 ExecStart=/usr/bin/dockerd $OPTIONS
 ExecReload=/bin/kill -s HUP $MAINPID
