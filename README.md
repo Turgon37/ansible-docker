@@ -23,7 +23,10 @@ Currently this role provide the following features :
 
 ### OS Family
 
-This role is available for Debian 8/9 and CentOS
+This role is available for
+
+  * Debian/Raspbian 8/9
+  * CentOS
 
 ### Dependencies
 
