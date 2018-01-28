@@ -64,6 +64,11 @@ docker_server__service_restart_stamp_file: '/var/local/docker-must-restart-stamp
 
 
 ## Docker configuration
+# The main configuration directory
+docker_server__config_dir: /etc/docker
+# The main configuration file
+docker_server__config_file: '{{ docker_server__config_dir }}/daemon.json'
+
 # Restricted group allowed to access to socket
 docker_server__socket_group: docker
 docker_server__socket_group_users: []
