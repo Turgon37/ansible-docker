@@ -5,6 +5,7 @@
     name:   '{{ docker_server__socket_group }}'
     system: yes
     state:  present
+  when: "'unix://' in docker_server__hosts|join(' ')"
 
 - name: Add users to socket group
   user:
@@ -12,13 +13,13 @@
     append: yes
     groups: '{{ docker_server__socket_group }}'
   with_items: '{{ docker_server__socket_group_users }}'
-  when: item.state|d('present') == 'present'
+  when: "'unix://' in docker_server__hosts|join(' ') and item.state|d('present') == 'present'"
 
 # TODO to improve after https://github.com/ansible/ansible/issues/11024
 - name: Remove users from socket group
   command: '/usr/sbin/delgroup {{ item.name }} {{ docker_server__socket_group }}'
   with_items: '{{ docker_server__socket_group_users }}'
-  when: item is mapping and item.name is defined and item.state|d('present') == 'absent'
+  when: "'unix://' in docker_server__hosts|join(' ') and item is mapping and item.name is defined and item.state|d('present') == 'absent'"
 
 - name: Ensure docker directory exists
   file:
