@@ -1,4 +1,12 @@
 ---
+- name: Get current docker-compose version if not in facts
+  command: '{{ docker_server__compose_path }} --version'
+  when: ansible_local.docker_compose is not defined
+        or ansible_local.docker_compose.version_full is not defined
+  register: _docker_server__compose_current_version
+  check_mode: False
+  changed_when: False
+  failed_when: False
 
 - name: Download Docker compose tool for x86_64 machines
   get_url:
@@ -6,6 +14,8 @@
     dest: '{{ docker_server__compose_path }}'
     mode: 0755
   when: ansible_architecture == "x86_64" and docker_server__compose_state|d('present') == 'present'
+        and _docker_server__compose_current_version.stdout is defined
+        and docker_server__compose_version not in _docker_server__compose_current_version.stdout
 
 - name: Remove docker-compose tool
   file:
