@@ -41,7 +41,6 @@
     group: root
     mode:  0755
   when: ansible_architecture in ['armv7l'] and docker_server__compose_state|d('present') == 'present'
-      and _docker_server__compose_need_upgrade|bool
 
 - name: Remove docker-compose tool
   file:
