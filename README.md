@@ -16,7 +16,9 @@ Currently this role provide the following features :
   * docker engine installation
   * docker engine configuration
   * docker engine systemd service file
-  * install the docker-compose tool (if host architecture is x86)
+  * install the docker-compose tool
+    * use the native tool for x86 architectures
+    * use a workaround script + compiled docker image for some other platforms (only armhf for now)
   * [local facts](#facts)
 
 ## Requirements
@@ -48,9 +50,27 @@ The variables that can be passed to this role and a brief description about them
 | docker_server__service_restartable        | Boolean        | If the docker configuration change ansible will automatically restart the service unless this variable is set to False. In others words, set this to True if you want ansible automatically restart the docker daemon on configuration changes|
 | docker_server__service_restart_stamp_file | String         | If service_restartable (above) is set to False, ansible will touch this path instead of restarting docker. This allow you to test the presence of this file with your monitoring tool                                                         |
 | docker_server__socket_group               | String         | The name of the linux group the socket will belong to                                                                                                                                                                                         |
-| docker_server__socket_group_users         | List of String | The list of linux local user name you want to add to socket group                                                                                                                                                                             |
+| docker_server__socket_group_users         | List/Dict (see below) | The list of linux local user name you want to add to socket group                                                                                                                                                                             |
 
 :exclamation: In a production environment I recommend to set docker_server__service_restartable to False and to handle manually the docker service's restarts
+
+### Socket privileged users configuration
+
+If any of your configured docker listen hosts contains 'unix://' string this role will configure a unix system group to secure it.
+Then, you can add some users to this group by using the following configuration:
+
+```
+docker_server__socket_group_users:
+  - userlogin1
+```
+
+If you want to revoke user socket access
+
+```
+docker_server__socket_group_users:
+  - name: userlogin1
+    state: absent
+```
 
 ## Facts
 
@@ -72,13 +92,18 @@ In addition, the following facts are available about docker-compose
 
 To use this role create or update your playbook according the following examples :
 
-  * Exemple of configuration with classical FILES backend
+  * Exemple of configuration with specific storage driver
 
 ```
     - hosts: servers
       roles:
          - docker-server
       vars:
+        storage-driver: devicemapper
+        storage-opts:
+          dm.thinpooldev: /dev/mapper/docker-thinpool
+          dm.use_deferred_removal: True
+          dm.use_deferred_deletion: True
 ```
 
 
