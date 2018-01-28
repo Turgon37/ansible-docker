@@ -50,6 +50,14 @@ docker_server__compose_source_checksums:
     Linux:
       x86_64: sha256:b2f2c3834107f526b1d9cc8d8e0bdd132c6f1495b036a32cbc61b5288d2e2a01
 
+# Docker image to use for host on which docker-compose native tool is not available
+docker_server__compose_workaround_image: '{{ docker_server__compose_workaround_images[docker_server__compose_version][ansible_system][ansible_architecture] }}'
+# Mapping of dokcer images name for the above setting
+docker_server__compose_workaround_images:
+  1.18.0:
+    Linux:
+      armv7l: turgon37/docker-compose:armhf-1.18.0dev
+
 ## Docker service
 # The name of the systemd docker service
 docker_server__service_name: docker

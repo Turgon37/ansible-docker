@@ -1,4 +1,5 @@
 ---
+
 - name: Get current docker-compose version if not in facts
   command: '{{ docker_server__compose_path }} --version'
   when: ansible_local.docker_compose is not defined
@@ -8,6 +9,20 @@
   changed_when: False
   failed_when: False
 
+- name: Check if docker-compose need upgrade
+  set_fact:
+    _docker_server__compose_need_upgrade: '{{ (
+        (
+          _docker_server__compose_current_version.stdout is defined
+          and docker_server__compose_version not in _docker_server__compose_current_version.stdout
+        )
+        or
+        (
+          ansible_local.docker_compose is defined and
+          ansible_local.docker_compose.version_full|d(0)|version_compare(docker_server__compose_version, "<>")
+        )
+      ) }}'
+
 - name: Download Docker compose tool for x86_64 machines
   get_url:
     url:      '{{ docker_server__compose_url }}'
@@ -15,8 +30,17 @@
     mode:     0755
     checksum: '{{ docker_server__compose_source_checksums[docker_server__compose_version][ansible_system][ansible_architecture] if docker_server__compose_source_checksums|length > 0 else omit }}'
   when: ansible_architecture == "x86_64" and docker_server__compose_state|d('present') == 'present'
-        and _docker_server__compose_current_version.stdout is defined
-        and docker_server__compose_version not in _docker_server__compose_current_version.stdout
+      and _docker_server__compose_need_upgrade|bool
+
+- name: Install Docker compose workaround tool for non x86_64 machines
+  template:
+    src:   docker-compose.sh.j2
+    dest:  '{{ docker_server__compose_path }}'
+    owner: root
+    group: root
+    mode:  0755
+  when: ansible_architecture in ['armv7l'] and docker_server__compose_state|d('present') == 'present'
+      and _docker_server__compose_need_upgrade|bool
 
 - name: Remove docker-compose tool
   file:
