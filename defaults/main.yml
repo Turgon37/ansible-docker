@@ -80,6 +80,9 @@ docker_server__config_file: '{{ docker_server__config_dir }}/daemon.json'
 # Path to service's environment variables
 #docker_server__config_vars_file:
 
+# The base directory of docker persistent datas
+docker_server__directory: /var/lib/docker
+
 # Restricted group allowed to access to socket
 docker_server__socket_group: docker
 # List of users allowed to access docker socket
@@ -110,6 +113,7 @@ docker_server__hosts: '{{ docker_server__hosts_default
 
 # Default options provided by the role
 docker_server__config_default:
+  data-root: '{{ docker_server__directory }}'
   hosts: '{{ docker_server__hosts }}'
   icc: True
   iptables: True
@@ -133,14 +137,6 @@ docker_server__config_options: '{{ docker_server__config_default
   |combine(docker_server__config_global)
   |combine(docker_server__config_group)
   |combine(docker_server__config_host) }}'
-
-
-
-# The base directory of docker data
-docker_server__directory: /var/lib/docker
-
-
-
 
 # List of GPG keys to add
 docker_server__gpg_keys:
