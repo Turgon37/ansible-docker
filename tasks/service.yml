@@ -29,6 +29,19 @@
     enabled: '{{ docker_server__service_enabled|bool }}'
     state:   "{{ docker_server__service_enabled|bool|ternary('started', 'stopped') }}"
 
+# restart feature
+- name: Test if docker need to be restart
+  stat:
+    path: '{{ docker_server__service_restart_stamp_file }}'
+  register: _docker_server__restart_file
+  check_mode: False
+
+- name: Restart docker if needed and allowed
+  service:
+    name:  '{{ docker_server__service_name }}'
+    state: restarted
+  when: docker_server__service_enabled|bool and docker_server__service_restartable|bool and _docker_server__restart_file.stat.exists
+
 - name: Remove stamp file if docker daemon is disabled
   file:
     path:  '{{ docker_server__service_restart_stamp_file }}'
