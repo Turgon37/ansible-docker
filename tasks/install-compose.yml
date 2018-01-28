@@ -19,6 +19,7 @@
         or
         (
           ansible_local.docker_compose is defined and
+          ansible_local.docker_compose.version_full is defined and
           ansible_local.docker_compose.version_full|d(0)|version_compare(docker_server__compose_version, "<>")
         )
       ) }}'
