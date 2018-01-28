@@ -8,10 +8,15 @@
     mode:  0755
     state: directory
 
-- name: Insert custom fact file
+- name: Insert custom fact files
   template:
-    src:   docker.fact.py.j2
-    dest:  "{{ facts__dir|d('/etc/ansible/facts.d') }}/docker.fact"
+    src:   '{{ item.src }}'
+    dest:  "{{ facts__dir|d('/etc/ansible/facts.d') }}/{{ item.dest }}"
     owner: root
     group: root
     mode:  0755
+  with_items:
+    - src:  docker.fact.py.j2
+      dest: docker.fact
+    - src:  docker-compose.fact.py.j2
+      dest: docker-compose.fact
