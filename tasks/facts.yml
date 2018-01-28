@@ -18,5 +18,11 @@
   with_items:
     - src:  docker.fact.py.j2
       dest: docker.fact
-    - src:  docker-compose.fact.py.j2
-      dest: docker-compose.fact
+    - src:  docker_compose.fact.py.j2
+      dest: docker_compose.fact
+
+# This is temporary
+- name: Remove bad named fact file
+  file:
+    path:  "{{ facts__dir|d('/etc/ansible/facts.d') }}/docker-compose.fact"
+    state: absent
