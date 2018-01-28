@@ -77,27 +77,68 @@ docker_server__service_restart_stamp_file: '/var/local/docker-must-restart-stamp
 docker_server__config_dir: /etc/docker
 # The main configuration file
 docker_server__config_file: '{{ docker_server__config_dir }}/daemon.json'
+# Path to service's environment variables
+#docker_server__config_vars_file:
 
 # Restricted group allowed to access to socket
 docker_server__socket_group: docker
 # List of users allowed to access docker socket
+# SECURITY WARNING:
+# Be aware that granted users can easily get full root access on the docker host system!
 docker_server__socket_group_users: []
+
+# This host configuration will be used by default for all client tools
+docker_server__clients_host: 'unix:///var/run/docker.sock'
+
+# Default list of sockets docker will use
+docker_server__hosts_default:
+  - '{{ docker_server__clients_host }}'
+
+# Docker sockets intended to be declared at global inventory level
+docker_server__hosts_global: []
+# Docker sockets intended to be declared at hostgroup inventory level
+docker_server__hosts_group: []
+# Docker sockets intended to be declared at host inventory level
+docker_server__hosts_host: []
+
+# Final set of listen sockets
+docker_server__hosts: '{{ docker_server__hosts_default
+  |union(docker_server__hosts_global)
+  |union(docker_server__hosts_group)
+  |union(docker_server__hosts_host)
+  |unique|list }}'
+
+# Default options provided by the role
+docker_server__config_default:
+  hosts: '{{ docker_server__hosts }}'
+  icc: True
+  iptables: True
+  ip-forward: True
+  ip-masq: True
+  log-level: info
+  log-driver: json-file
+  log-opts:
+    max-file: "5"
+    max-size: "10m"
+
+# Docker options intended to be used at global inventory level
+docker_server__config_global: {}
+# Docker options intended to be used at hostgroup inventory level
+docker_server__config_group: {}
+# Docker options intended to be used at host inventory level
+docker_server__config_host: {}
+
+# Final dict of options
+docker_server__config_options: '{{ docker_server__config_default
+  |combine(docker_server__config_global)
+  |combine(docker_server__config_group)
+  |combine(docker_server__config_host) }}'
+
+
 
 # The base directory of docker data
 docker_server__directory: /var/lib/docker
 
-# Path to service's environment variables
-#docker_server__config_vars_file:
-
-docker_server__host: "unix:///var/run/docker.sock"
-#docker_server__storage_driver:
-
-docker_server__storage_opt : {}
-
-#docker_server__tlsverify:
-#docker_server__tlscacert:
-#docker_server__tlscert:
-#docker_server__tlskey:
 
 
 

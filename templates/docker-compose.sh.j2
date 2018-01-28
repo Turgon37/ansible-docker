@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ $# -eq 0 ]; then
+  ARGS=ps
+fi
+
+export DOCKER_HOST='{{ docker_server__clients_host }}'
+
+docker run --interactive=true --tty --privileged --rm {% if 'unix' in docker_server__clients_host %} --volume {{ docker_server__clients_host|replace('unix://', '') }}:{{ docker_server__clients_host|replace('unix:/', '') }}{% endif %} --workdir "/docker/$(basename $(pwd))" --volume "$(pwd):/docker/$(basename $(pwd))" {{ docker_server__compose_workaround_image }} $ARGS $@
