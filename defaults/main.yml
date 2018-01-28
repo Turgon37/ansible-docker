@@ -39,6 +39,15 @@ docker_server__compose_state: present
 # Path to the docker-compose tool binary
 docker_server__compose_path: /usr/local/bin/docker-compose
 
+# The full url used to get docker-compose
+docker_server__compose_url: 'https://github.com/docker/compose/releases/download/{{ docker_server__compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
+
+# List of checksum for each docker-compose versions
+# to disable checksum feature simply set this value to empty dict
+docker_server__compose_source_checksums:
+  1.18.0:
+    Linux:
+      x86_64: sha256:b2f2c3834107f526b1d9cc8d8e0bdd132c6f1495b036a32cbc61b5288d2e2a01
 
 ## Docker service
 # The name of the systemd docker service

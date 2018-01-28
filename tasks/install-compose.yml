@@ -10,9 +10,10 @@
 
 - name: Download Docker compose tool for x86_64 machines
   get_url:
-    url:  'https://github.com/docker/compose/releases/download/{{ docker_server__compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
-    dest: '{{ docker_server__compose_path }}'
-    mode: 0755
+    url:      '{{ docker_server__compose_url }}'
+    dest:     '{{ docker_server__compose_path }}'
+    mode:     0755
+    checksum: '{{ docker_server__compose_source_checksums[docker_server__compose_version][ansible_system][ansible_architecture] if docker_server__compose_source_checksums|length > 0 else omit }}'
   when: ansible_architecture == "x86_64" and docker_server__compose_state|d('present') == 'present'
         and _docker_server__compose_current_version.stdout is defined
         and docker_server__compose_version not in _docker_server__compose_current_version.stdout
