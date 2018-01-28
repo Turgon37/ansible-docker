@@ -37,16 +37,18 @@ This role is available for
 
 The variables that can be passed to this role and a brief description about them are as follows:
 
-| Name                                      | Types/Values | Description                                                                                                                                                                                                                                   |
-| ------------------------------------------| -------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| docker_server__facts                      | Boolean      | Install the local fact script                                                                                                                                                                                                                 |
-| docker_server__edition                    | String       | Install edition in 'ce' (Community Edition) or 'ee' (Enterprise Edition)                                                                                                                                                                      |
-| docker_server__repository_release_channel | String       | The release channel to use in 'stable', 'edge', 'test'                                                                                                                                                                                        |
-| docker_server__compose_version            | String       | The version of docker-compose to install                                                                                                                                                                                                      |
-| docker_server__compose_state              | String       | The state of docker-compose tool in 'present', 'absent'                                                                                                                                                                                       |
-| docker_server__service_enabled            | Boolean      | Enable or not the docker service on the host                                                                                                                                                                                                  |
-| docker_server__service_restartable        | Boolean      | If the docker configuration change ansible will automatically restart the service unless this variable is set to False. In others words, set this to True if you want ansible automatically restart the docker daemon on configuration changes|
-| docker_server__service_restart_stamp_file | String       | If service_restartable (above) is set to False, ansible will touch this path instead of restarting docker. This allow you to test the presence of this file with your monitoring tool                                                         |
+| Name                                      | Types/Values   | Description                                                                                                                                                                                                                                   |
+| ------------------------------------------| ---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| docker_server__facts                      | Boolean        | Install the local fact script                                                                                                                                                                                                                 |
+| docker_server__edition                    | String         | Install edition in 'ce' (Community Edition) or 'ee' (Enterprise Edition)                                                                                                                                                                      |
+| docker_server__repository_release_channel | String         | The release channel to use in 'stable', 'edge', 'test'                                                                                                                                                                                        |
+| docker_server__compose_version            | String         | The version of docker-compose to install                                                                                                                                                                                                      |
+| docker_server__compose_state              | String         | The state of docker-compose tool in 'present', 'absent'                                                                                                                                                                                       |
+| docker_server__service_enabled            | Boolean        | Enable or not the docker service on the host                                                                                                                                                                                                  |
+| docker_server__service_restartable        | Boolean        | If the docker configuration change ansible will automatically restart the service unless this variable is set to False. In others words, set this to True if you want ansible automatically restart the docker daemon on configuration changes|
+| docker_server__service_restart_stamp_file | String         | If service_restartable (above) is set to False, ansible will touch this path instead of restarting docker. This allow you to test the presence of this file with your monitoring tool                                                         |
+| docker_server__socket_group               | String         | The name of the linux group the socket will belong to                                                                                                                                                                                         |
+| docker_server__socket_group_users         | List of String | The list of linux local user name you want to add to socket group                                                                                                                                                                             |
 
 :exclamation: In a production environment I recommend to set docker_server__service_restartable to False and to handle manually the docker service's restarts
 
@@ -59,6 +61,11 @@ You can use this command to get an idea of available keys
 ```
 docker version --format '{{json .}}'
 ```
+
+In addition, the following facts are available about docker-compose
+
+* ```ansible_local.docker_compose.version_full```
+* ```ansible_local.docker_compose.version_major```
 
 
 ## Examples Playbooks

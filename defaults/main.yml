@@ -72,6 +72,7 @@ docker_server__config_file: '{{ docker_server__config_dir }}/daemon.json'
 
 # Restricted group allowed to access to socket
 docker_server__socket_group: docker
+# List of users allowed to access docker socket
 docker_server__socket_group_users: []
 
 # The base directory of docker data
