@@ -8,10 +8,17 @@
 
 - name: Add users to socket group
   user:
-    name:   '{{ item }}'
+    name:   '{{ item if item is string else item.name }}'
     append: yes
     groups: '{{ docker_server__socket_group }}'
   with_items: '{{ docker_server__socket_group_users }}'
+  when: item.state|d('present') == 'present'
+
+# TODO to improve after https://github.com/ansible/ansible/issues/11024
+- name: Remove users from socket group
+  command: '/usr/sbin/delgroup {{ item.name }} {{ docker_server__socket_group }}'
+  with_items: '{{ docker_server__socket_group_users }}'
+  when: item is mapping and item.name is defined and item.state|d('present') == 'absent'
 
 - name: Ensure docker directory exists
   file:
