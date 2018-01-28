@@ -32,6 +32,7 @@
   copy:
     content: '{{ {} | to_nice_json }}'
     dest:    '{{ docker_server__config_file }}'
+    mode:    0640
   notify: ['restart-docker-server']
 
 - name: Configure docker service environment variables
