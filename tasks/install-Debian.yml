@@ -1,15 +1,5 @@
 ---
 
-- name: Install required tools
-  package:
-    name:  '{{ item }}'
-    state: present
-  with_items:
-    - apt-transport-https
-    - ca-certificates
-    - gnupg2
-    - software-properties-common
-
 - name: Add docker repository GPG key to apt keyring
   apt_key:
     url:   '{{ item.url|d(omit) }}'

@@ -1,8 +1,14 @@
 ---
 
-docker_server__conflict_packages:
+docker_server__conflict_packages_names:
   - docker
   - docker-common
   - docker-engine
+
+docker_server__required_packages_names:
+  - yum-utils
+  - device-mapper-persistent-data
+  - lvm2
+  - python-docker-py
 
 docker_server__config_vars_file: /etc/sysconfig/docker

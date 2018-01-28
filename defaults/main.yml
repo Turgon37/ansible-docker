@@ -10,13 +10,14 @@ docker_server__facts: True
 
 ## Docker installation
 # List of package to remove
-docker_server__conflict_packages: []
+docker_server__conflict_packages_names: []
+docker_server__required_packages_names: []
 
 # Edition can be one of: 'ce' (Community Edition) or 'ee' (Enterprise Edition).
 docker_server__edition: 'ce'
 
 # Name of main docker package
-docker_server__packages_name: 'docker-{{ docker_server__edition }}'
+docker_server__package_name: 'docker-{{ docker_server__edition }}'
 
 # Base url for all repository urls
 docker_server__repository_base_url: 'https://download.docker.com'

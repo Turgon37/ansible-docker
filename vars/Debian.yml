@@ -1,8 +1,15 @@
 ---
 
-docker_server__conflict_packages:
+docker_server__conflict_packages_names:
   - docker
   - docker-engine
   - docker.io
+
+docker_server__required_packages_names:
+  - apt-transport-https
+  - ca-certificates
+  - gnupg2
+  - software-properties-common
+  - python-docker
 
 docker_server__config_vars_file: /etc/default/docker
