@@ -1,0 +1,124 @@
+#!/usr/bin/env python
+
+import argparse
+import docker
+import json
+import os
+import time
+import sys
+
+# Return dict
+content=dict({
+    'containers': [],
+    'containers_count': 0
+})
+
+# Global variables
+attributes_whitelist = [
+    'Name', 'Names',
+    'State'
+]
+local_query_cache_path = '/tmp/zbx_dck_qc.json'
+local_query_cache_lock_path = local_query_cache_path+'.lock'
+
+os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
+
+
+def LockException(BaseException):
+    pass
+
+def acquireLock():
+    tries = 0
+    # wait if lock is acquired
+    while os.path.isfile(local_query_cache_lock_path):
+        tries += 1
+        if tries > 14:
+            raise LockException('unable to acquire lock')
+        time.sleep(0.1)
+    with open(local_query_cache_lock_path, 'w') as f:
+        pass
+    return True
+
+def releaseLock():
+    if os.path.isfile(local_query_cache_lock_path):
+        os.unlink(local_query_cache_lock_path)
+    return True
+
+def getContainers():
+    # generate cache
+    if (not os.path.isfile(local_query_cache_path) or
+        time.time() - os.stat(local_query_cache_path).st_mtime > 50):
+        try:
+            client = docker.from_env()
+            containers = list(
+                            map(lambda x: dict(
+                                            filter(lambda x: x[0] in attributes_whitelist,
+                                                    (x.attrs if hasattr(x, 'attrs') else x).items())
+                                        ),
+                                client.containers.list() if hasattr(client.containers, 'list') else client.containers()
+                            )
+                        )
+            acquireLock()
+            with open(local_query_cache_path, 'w') as f:
+                json.dump(containers, f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock()
+    # use cache
+    else:
+        try:
+            acquireLock()
+            with open(local_query_cache_path, 'r') as f:
+                containers = json.load(f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock()
+    return containers
+
+
+## RETRIEVE INFORMATIONS
+if __name__ == "__main__":
+    # Create parser
+    parser = argparse.ArgumentParser(description='Command line utility to query containers from docker daemon')
+    action_group = parser.add_mutually_exclusive_group()
+    action_group.add_argument('--count', action='store_true', help='Return only the current containers count')
+    action_group.add_argument('--discovery', action='store_true', help='Return an array of containers attributes to use to create templated items')
+    action_group.add_argument('--container', action='store', dest='container_name', nargs='?', default=None,
+                                help='Return only attributes of this given container name')
+
+    parser.add_argument('--zabbix', action='store_const', const='zabbix', dest='discovery_format', default=None,
+                                help='Set output format for zabbix')
+
+    args = parser.parse_args()
+
+    content['containers'] = getContainers()
+    content['containers_count'] = len(content['containers'])
+
+    ## OUTPUT
+    if args.count:
+        print(content['containers_count'])
+    elif args.discovery:
+        if args.discovery_format == 'zabbix':
+            data = []
+            for container in content['containers']:
+                if 'Name' in container:
+                    name = container['Name']
+                else:
+                    name = container['Names'][0]
+                    if name[0].startswith('/'):
+                        name = name.split('/')[1]
+                item = dict({'{{ '{#' }}NAME}': name})
+                for key in container:
+                    if key in ['Name', 'Names']:
+                        continue
+                    item['{{ '{#' }}'+key.upper()+'}'] = container[key]
+                data.append(item)
+            print(json.dumps({"data": data}))
+        else:
+            print('you must choose an output format for discovery informations')
+            sys.exit(1)
+    else:
+        print(json.dumps(content))
+sys.exit(0)

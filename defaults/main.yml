@@ -7,6 +7,8 @@ docker_server__role: True
 # Enable fact deployment
 docker_server__facts: True
 
+# Choose the monitoring backend to configure (if available)
+#docker_server__monitoring:
 
 ## Docker installation
 # List of package to remove

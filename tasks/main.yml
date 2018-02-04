@@ -24,6 +24,10 @@
 - import_tasks: service.yml
   tags: ['docker-server', 'docker-server-service']
 
+- include_tasks: 'monitoring-{{ docker_server__monitoring }}.yml'
+  when: docker_server__monitoring is defined
+  tags: ['docker-server', 'docker-server-monitoring']
+
 - include_tasks: facts.yml
   when: docker_server__facts|bool
   tags: ['docker-server', 'docker-server-facts']

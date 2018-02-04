@@ -1,0 +1,36 @@
+---
+
+- name: Create custom scripts directory
+  file:
+    path:  "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}"
+    owner: root
+    group: root
+    mode:  0755
+    state: directory
+
+- name: Install docker query cli file
+  template:
+    src:   docker_cli_containers.py.j2
+    dest:  "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py"
+    owner: root
+    group: root
+    mode:  0755
+
+- name: Configure zabbix userparameters
+  include_role:
+    name: zabbix-agent
+    tasks_from: userparameter
+  vars:
+    zabbix_agent__userparameter:
+      name: docker
+      userparameter:
+        - key: docker.containers.count
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py --count"
+          comment: get the current number of containers
+        - key: docker.containers.discovery
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py --discovery --zabbix"
+          comment: get name of containers
+        - key: docker.container[*]
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py --container= --zabbix"
+          comment: get information about a specific container
+      state: present
