@@ -2,6 +2,7 @@
 
 import argparse
 import docker
+import hashlib
 import json
 import os
 import time
@@ -18,7 +19,7 @@ attributes_whitelist = [
     'Name', 'Names',
     'State'
 ]
-local_query_cache_path = '/tmp/zbx_dck_qc.json'
+local_query_cache_path = '/tmp/zbx_dck_qc_{}.json'.format(hashlib.md5(os.getenv('USER')).hexdigest())
 local_query_cache_lock_path = local_query_cache_path+'.lock'
 
 os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
@@ -44,18 +45,31 @@ def releaseLock():
         os.unlink(local_query_cache_lock_path)
     return True
 
+def normalizeContainers(c):
+    if 'Name' in c:
+        name = c['Name']
+    else:
+        name = c['Names'][0]
+        del c['Names']
+    if name[0].startswith('/'):
+        name = name.split('/')[1]
+    c['Name'] = name
+    return c
+
 def getContainers():
     # generate cache
     if (not os.path.isfile(local_query_cache_path) or
         time.time() - os.stat(local_query_cache_path).st_mtime > 50):
         try:
             client = docker.from_env()
-            containers = list(
-                            map(lambda x: dict(
-                                            filter(lambda x: x[0] in attributes_whitelist,
-                                                    (x.attrs if hasattr(x, 'attrs') else x).items())
-                                        ),
-                                client.containers.list() if hasattr(client.containers, 'list') else client.containers()
+            containers = map(normalizeContainers,
+                            list(
+                                map(lambda x: dict(
+                                                filter(lambda x: x[0] in attributes_whitelist,
+                                                        (x.attrs if hasattr(x, 'attrs') else x).items())
+                                                ),
+                                    client.containers.list() if hasattr(client.containers, 'list') else client.containers()
+                                ),
                             )
                         )
             acquireLock()
@@ -98,27 +112,24 @@ if __name__ == "__main__":
 
     ## OUTPUT
     if args.count:
-        print(content['containers_count'])
+        content = content['containers_count']
     elif args.discovery:
         if args.discovery_format == 'zabbix':
             data = []
             for container in content['containers']:
-                if 'Name' in container:
-                    name = container['Name']
-                else:
-                    name = container['Names'][0]
-                    if name[0].startswith('/'):
-                        name = name.split('/')[1]
-                item = dict({'{{ '{#' }}NAME}': name})
+                item = dict()
                 for key in container:
-                    if key in ['Name', 'Names']:
-                        continue
                     item['{{ '{#' }}'+key.upper()+'}'] = container[key]
                 data.append(item)
-            print(json.dumps({"data": data}))
+            content = dict({"data": data})
         else:
             print('you must choose an output format for discovery informations')
             sys.exit(1)
-    else:
-        print(json.dumps(content))
+    elif args.container_name:
+        result = filter(lambda x: x['Name'] == args.container_name, content['containers'])
+        if len(result):
+            content = result[0]
+        else:
+            content = None
+    print(json.dumps(content))
 sys.exit(0)
