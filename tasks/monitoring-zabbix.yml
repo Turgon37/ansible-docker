@@ -23,14 +23,20 @@
   vars:
     zabbix_agent__userparameter:
       name: docker
-      userparameter:
+      userparameters:
         - key: docker.containers.count
           command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py --count"
+          sudo: True
+          sudo_group: '{{ docker_server__socket_group }}'
           comment: get the current number of containers
         - key: docker.containers.discovery
           command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py --discovery --zabbix"
+          sudo: True
+          sudo_group: '{{ docker_server__socket_group }}'
           comment: get name of containers
         - key: docker.container[*]
-          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py --container= --zabbix"
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers.py '--container=$1' --zabbix"
+          sudo: True
+          sudo_group: '{{ docker_server__socket_group }}'
           comment: get information about a specific container
       state: present
