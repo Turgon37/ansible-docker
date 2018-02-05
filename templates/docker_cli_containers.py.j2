@@ -15,10 +15,19 @@ content=dict({
 })
 
 # Global variables
+# strict list of attributes to extract from docker containers
 attributes_whitelist = [
     'Name', 'Names',
     'State'
 ]
+# mapping for return values
+attributes_map = {
+    'State': {
+        'running': 1,
+        'default': 0
+    }
+}
+
 local_query_cache_path = '/tmp/zbx_dck_qc_{}.json'.format(hashlib.md5(os.getenv('USER')).hexdigest())
 local_query_cache_lock_path = local_query_cache_path+'.lock'
 
@@ -46,6 +55,7 @@ def releaseLock():
     return True
 
 def normalizeContainers(c):
+    # normalize name
     if 'Name' in c:
         name = c['Name']
     else:
@@ -54,6 +64,13 @@ def normalizeContainers(c):
     if name[0].startswith('/'):
         name = name.split('/')[1]
     c['Name'] = name
+    # map values according to defined mapping
+    for key in c:
+        if key in attributes_map:
+            if c[key] in attributes_map[key]:
+                c[key] = attributes_map[key][c[key]]
+            elif 'default' in attributes_map[key]:
+                c[key] = attributes_map[key]['default']
     return c
 
 def getContainers():
