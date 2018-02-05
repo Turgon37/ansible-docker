@@ -19,6 +19,8 @@ Currently this role provide the following features :
   * install the docker-compose tool
     * use the native tool for x86 architectures
     * use a workaround script + compiled docker image for some other platforms (only armhf for now)
+  * monitoring items for
+    * Zabbix
   * [local facts](#facts)
 
 ## Requirements
@@ -32,7 +34,7 @@ This role is available for
 
 ### Dependencies
 
---
+If you use the zabbix monitoring profile you will need the role [ansible-zabbix-agent](https://github.com/Turgon37/ansible-zabbix-agent)
 
 
 ## Role Variables
