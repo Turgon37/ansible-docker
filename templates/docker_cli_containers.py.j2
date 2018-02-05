@@ -22,7 +22,7 @@ attributes_whitelist = [
 ]
 # mapping for return values
 attributes_map = {
-    'State': {
+    'STATE': {
         'running': 1,
         'default': 0
     }
@@ -56,14 +56,14 @@ def releaseLock():
 
 def normalizeContainers(c):
     # normalize name
-    if 'Name' in c:
-        name = c['Name']
+    if 'NAME' in c:
+        name = c['NAME']
     else:
-        name = c['Names'][0]
-        del c['Names']
+        name = c['NAMES'][0]
+        del c['NAMES']
     if name[0].startswith('/'):
         name = name.split('/')[1]
-    c['Name'] = name
+    c['NAME'] = name
     # map values according to defined mapping
     for key in c:
         if key in attributes_map:
@@ -82,8 +82,10 @@ def getContainers():
             containers = map(normalizeContainers,
                             list(
                                 map(lambda x: dict(
-                                                filter(lambda x: x[0] in attributes_whitelist,
-                                                        (x.attrs if hasattr(x, 'attrs') else x).items())
+                                                map(lambda x: (x[0].upper(), x[1]),
+                                                    filter(lambda x: x[0] in attributes_whitelist,
+                                                            (x.attrs if hasattr(x, 'attrs') else x).items())
+                                                    )
                                                 ),
                                     client.containers.list() if hasattr(client.containers, 'list') else client.containers()
                                 ),
@@ -136,14 +138,14 @@ if __name__ == "__main__":
             for container in content['containers']:
                 item = dict()
                 for key in container:
-                    item['{{ '{#' }}'+key.upper()+'}'] = container[key]
+                    item['{{ '{#' }}'+key+'}'] = container[key]
                 data.append(item)
             content = dict({"data": data})
         else:
             print('you must choose an output format for discovery informations')
             sys.exit(1)
     elif args.container_name:
-        result = filter(lambda x: x['Name'] == args.container_name, content['containers'])
+        result = filter(lambda x: x['NAME'] == args.container_name, content['containers'])
         if len(result):
             content = result[0]
         else:
