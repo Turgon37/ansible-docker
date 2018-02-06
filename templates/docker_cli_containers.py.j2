@@ -18,19 +18,25 @@ content=dict({
 # strict list of attributes to extract from docker containers
 attributes_whitelist = [
     'Name', 'Names',
-    'State'
+    'State', 'Id'
 ]
+
+def attributes_map_state(state):
+    if isinstance(state, str):
+        if state in ['running']:
+            return 1
+        return 0
+    elif isinstance(state, dict):
+        return attributes_map_state(state['Status'])
+
 # mapping for return values
 attributes_map = {
-    'STATE': {
-        'running': 1,
-        'default': 0
-    }
+    'STATE': attributes_map_state
 }
 
 # number of second to cache a query result
 local_query_cache_life = 55
-local_query_cache_path = '/tmp/zbx_dck_qc_{}.json'.format(hashlib.md5(os.getenv('USER')).hexdigest())
+local_query_cache_path = '/tmp/zbx_dck_cqc_{}.json'.format(hashlib.md5(os.getenv('USER').encode()).hexdigest())
 local_query_cache_lock_path = local_query_cache_path+'.lock'
 
 os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
@@ -68,31 +74,32 @@ def normalizeContainers(c):
     c['NAME'] = name
     # map values according to defined mapping
     for key in c:
-        if key in attributes_map:
-            if c[key] in attributes_map[key]:
-                c[key] = attributes_map[key][c[key]]
-            elif 'default' in attributes_map[key]:
-                c[key] = attributes_map[key]['default']
+        if key in attributes_map and callable(attributes_map[key]):
+            c[key] = attributes_map[key](c[key])
     return c
 
-def getContainers():
+def getContainers(cache=True):
     # generate cache
-    if (not os.path.isfile(local_query_cache_path) or
+    if (not cache or
+        not os.path.isfile(local_query_cache_path) or
         time.time() - os.stat(local_query_cache_path).st_mtime > local_query_cache_life):
         try:
             client = docker.from_env()
-            containers = map(normalizeContainers,
-                            list(
+            containers = list(
+                            map(normalizeContainers,
                                 map(lambda x: dict(
                                                 map(lambda x: (x[0].upper(), x[1]),
                                                     filter(lambda x: x[0] in attributes_whitelist,
-                                                            (x.attrs if hasattr(x, 'attrs') else x).items())
+                                                            list((x.attrs if hasattr(x, 'attrs') else x).items())
+                                                        )
                                                     )
                                                 ),
                                     client.containers.list() if hasattr(client.containers, 'list') else client.containers()
                                 ),
                             )
                         )
+            if not cache:
+                return containers
             acquireLock()
             with open(local_query_cache_path, 'w') as f:
                 json.dump(containers, f)
@@ -125,10 +132,12 @@ if __name__ == "__main__":
 
     parser.add_argument('--zabbix', action='store_const', const='zabbix', dest='discovery_format', default=None,
                                 help='Set output format for zabbix')
+    parser.add_argument('--no-cache', action='store_true', dest='use_cache', default=False,
+                                help='Disable caching of docker queries')
 
     args = parser.parse_args()
 
-    content['containers'] = getContainers()
+    content['containers'] = getContainers(cache=args.use_cache)
     content['containers_count'] = len(content['containers'])
 
     ## OUTPUT
