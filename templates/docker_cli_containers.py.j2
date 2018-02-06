@@ -28,6 +28,8 @@ attributes_map = {
     }
 }
 
+# number of second to cache a query result
+local_query_cache_life = 55
 local_query_cache_path = '/tmp/zbx_dck_qc_{}.json'.format(hashlib.md5(os.getenv('USER')).hexdigest())
 local_query_cache_lock_path = local_query_cache_path+'.lock'
 
@@ -76,7 +78,7 @@ def normalizeContainers(c):
 def getContainers():
     # generate cache
     if (not os.path.isfile(local_query_cache_path) or
-        time.time() - os.stat(local_query_cache_path).st_mtime > 50):
+        time.time() - os.stat(local_query_cache_path).st_mtime > local_query_cache_life):
         try:
             client = docker.from_env()
             containers = map(normalizeContainers,
