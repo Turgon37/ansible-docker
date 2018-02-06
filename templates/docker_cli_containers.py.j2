@@ -14,6 +14,12 @@ content=dict({
     'containers_count': 0
 })
 
+# python 3
+if sys.version_info[0] == 3:
+    string_types = str,
+else:
+    string_types = basestring,
+
 # Global variables
 # strict list of attributes to extract from docker containers
 attributes_whitelist = [
@@ -22,7 +28,7 @@ attributes_whitelist = [
 ]
 
 def attributes_map_state(state):
-    if isinstance(state, str):
+    if isinstance(state, string_types):
         if state in ['running']:
             return 1
         return 0
