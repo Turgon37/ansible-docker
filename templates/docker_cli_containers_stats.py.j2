@@ -50,7 +50,7 @@ def releaseLock(lockfile):
     return True
 
 def getContainersStats(name, cache=True):
-    local_query_cache_path = local_query_cache_dir_path+name
+    local_query_cache_path = os.path.join(local_query_cache_dir_path, name)
     local_query_cache_lock_path = local_query_cache_path+'.lock'
 
     # generate cache
@@ -100,13 +100,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # ensure cache directory
-    if use_cache:
+    if args.use_cache:
         if os.path.exists(local_query_cache_dir_path):
             if not os.path.isdir(local_query_cache_dir_path):
                 os.unlink(local_query_cache_dir_path)
-                os.mkdir(local_query_cache_dir_path)
+                os.mkdir(local_query_cache_dir_path, 0770)
         else:
-            os.mkdir(local_query_cache_dir_path)
+            os.mkdir(local_query_cache_dir_path, 0770)
 
     ## OUTPUT
     content = getContainersStats(args.container_name, cache=args.use_cache)
