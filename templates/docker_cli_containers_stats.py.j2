@@ -1,0 +1,105 @@
+#!/usr/bin/env python
+
+import argparse
+import docker
+import hashlib
+import json
+import os
+import time
+import sys
+
+# Return dict
+content=None
+
+# python 3
+if sys.version_info[0] == 3:
+    string_types = str,
+else:
+    string_types = basestring,
+
+# Global variables
+# mapping for return values
+attributes_map = {
+}
+
+# number of second to cache a query result
+local_query_cache_life = 55
+local_query_cache_dir_path = '/tmp/zbx_dck_csqc_{}'.format(hashlib.md5(os.getenv('USER').encode()).hexdigest())
+
+#os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
+
+
+def LockException(BaseException):
+    pass
+
+def acquireLock(lockfile):
+    tries = 0
+    # wait if lock is acquired
+    while os.path.isfile(lockfile):
+        tries += 1
+        if tries > 14:
+            raise LockException('unable to acquire lock')
+        time.sleep(0.1)
+    with open(lockfile, 'w') as f:
+        pass
+    return True
+
+def releaseLock(lockfile):
+    if os.path.isfile(lockfile):
+        os.unlink(lockfile)
+    return True
+
+def getContainersStats(name, cache=True):
+    local_query_cache_path = local_query_cache_dir_path+name
+    local_query_cache_lock_path = local_query_cache_path+'.lock'
+
+    # generate cache
+    if (not cache or
+        not os.path.isfile(local_query_cache_path) or
+        time.time() - os.stat(local_query_cache_path).st_mtime > local_query_cache_life):
+        try:
+            client = docker.from_env()
+            if hasattr(client.containers, 'get'):
+                stats = client.containers.get(name).stats(stream=False)
+            else:
+                stats = client.stats(name, stream=False)
+
+            if not cache:
+                return stats
+            acquireLock(local_query_cache_lock_path)
+            with open(local_query_cache_path, 'w') as f:
+                json.dump(stats, f)
+        except docker.errors.NotFound:
+            return None
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_query_cache_lock_path)
+    # use cache
+    else:
+        try:
+            acquireLock(local_query_cache_lock_path)
+            with open(local_query_cache_path, 'r') as f:
+                stats = json.load(f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_query_cache_lock_path)
+    return stats
+
+
+## RETRIEVE INFORMATIONS
+if __name__ == "__main__":
+    # Create parser
+    parser = argparse.ArgumentParser(description='Command line utility to query containers stats from docker daemon')
+    parser.add_argument('--container', action='store', dest='container_name', required=True,
+                                help='Set selected container name')
+    parser.add_argument('--no-cache', action='store_false', dest='use_cache', default=True,
+                                help='Disable caching of docker queries')
+
+    args = parser.parse_args()
+
+    ## OUTPUT
+    content = getContainersStats(args.container_name, cache=args.use_cache)
+    print(json.dumps(content))
+sys.exit(0)

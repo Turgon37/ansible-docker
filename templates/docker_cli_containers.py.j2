@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--zabbix', action='store_const', const='zabbix', dest='discovery_format', default=None,
                                 help='Set output format for zabbix')
-    parser.add_argument('--no-cache', action='store_true', dest='use_cache', default=False,
+    parser.add_argument('--no-cache', action='store_false', dest='use_cache', default=True,
                                 help='Disable caching of docker queries')
 
     args = parser.parse_args()
