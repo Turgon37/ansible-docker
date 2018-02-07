@@ -26,7 +26,7 @@ attributes_map = {
 local_query_cache_life = 55
 local_query_cache_dir_path = '/tmp/zbx_dck_csqc_{}'.format(hashlib.md5(os.getenv('USER').encode()).hexdigest())
 
-#os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
+os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
 
 
 def LockException(BaseException):
@@ -98,6 +98,15 @@ if __name__ == "__main__":
                                 help='Disable caching of docker queries')
 
     args = parser.parse_args()
+
+    # ensure cache directory
+    if use_cache:
+        if os.path.exists(local_query_cache_dir_path):
+            if not os.path.isdir(local_query_cache_dir_path):
+                os.unlink(local_query_cache_dir_path)
+                os.mkdir(local_query_cache_dir_path)
+        else:
+            os.mkdir(local_query_cache_dir_path)
 
     ## OUTPUT
     content = getContainersStats(args.container_name, cache=args.use_cache)
