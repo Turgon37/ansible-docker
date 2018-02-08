@@ -42,9 +42,14 @@
           sudo: True
           sudo_group: '{{ docker_server__socket_group }}'
           comment: get information about a specific container
-        - key: docker.container.stats[*]
-          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers_stats.py '--container=$1'"
+        - key: docker.container.name.stats[*]
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers_stats.py '--container-name=$1'"
           sudo: True
           sudo_group: '{{ docker_server__socket_group }}'
-          comment: get stats about a specific container
+          comment: get stats about a specific container using docker api
+        - key: docker.container.id.stats[*]
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/docker_cli_containers_stats.py '--container-id=$1'"
+          sudo: True
+          sudo_group: '{{ docker_server__socket_group }}'
+          comment: get stats about a specific container using docker sys fs
       state: present

@@ -49,7 +49,7 @@ def releaseLock(lockfile):
         os.unlink(lockfile)
     return True
 
-def getContainersStats(name, cache=True):
+def getContainersStatsFromApi(name, cache=True):
     local_query_cache_path = os.path.join(local_query_cache_dir_path, name)
     local_query_cache_lock_path = local_query_cache_path+'.lock'
 
@@ -92,8 +92,11 @@ def getContainersStats(name, cache=True):
 if __name__ == "__main__":
     # Create parser
     parser = argparse.ArgumentParser(description='Command line utility to query containers stats from docker daemon')
-    parser.add_argument('--container', action='store', dest='container_name', required=True,
-                                help='Set selected container name')
+    id_group = parser.add_mutually_exclusive_group()
+    id_group.add_argument('--container-name', action='store', dest='container_name',
+                                help='Get stats about this container name using docker api')
+    id_group.add_argument('--container-id', action='store', dest='container_id',
+                                help='Get stats about this container name using docker sys fs')
     parser.add_argument('--no-cache', action='store_false', dest='use_cache', default=True,
                                 help='Disable caching of docker queries')
 
@@ -109,6 +112,6 @@ if __name__ == "__main__":
             os.mkdir(local_query_cache_dir_path, 0770)
 
     ## OUTPUT
-    content = getContainersStats(args.container_name, cache=args.use_cache)
+    content = getContainersStatsFromApi(args.container_name, cache=args.use_cache)
     print(json.dumps(content))
 sys.exit(0)
