@@ -26,7 +26,15 @@ attributes_map = {
 local_query_cache_life = 55
 local_query_cache_dir_path = '/tmp/zbx_dck_csqc_{}'.format(hashlib.md5(os.getenv('USER').encode()).hexdigest())
 
-os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
+sysfs_base_path = '/sys/fs/cgroup'
+sysfs_metrics_config = {
+    'cpu': {},
+    'cpuacct': {},
+    'memory': {},
+    'blkio': {},
+}
+
+#os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
 
 
 def LockException(BaseException):
@@ -49,8 +57,8 @@ def releaseLock(lockfile):
         os.unlink(lockfile)
     return True
 
-def getContainersStatsFromApi(name, cache=True):
-    local_query_cache_path = os.path.join(local_query_cache_dir_path, name)
+def getContainersStatsFromApi(container_name, cache=True):
+    local_query_cache_path = os.path.join(local_query_cache_dir_path, container_name)
     local_query_cache_lock_path = local_query_cache_path+'.lock'
 
     # generate cache
@@ -60,9 +68,9 @@ def getContainersStatsFromApi(name, cache=True):
         try:
             client = docker.from_env()
             if hasattr(client.containers, 'get'):
-                stats = client.containers.get(name).stats(stream=False)
+                stats = client.containers.get(container_name).stats(stream=False)
             else:
-                stats = client.stats(name, stream=False)
+                stats = client.stats(container_name, stream=False)
 
             if not cache:
                 return stats
@@ -87,12 +95,23 @@ def getContainersStatsFromApi(name, cache=True):
             releaseLock(local_query_cache_lock_path)
     return stats
 
+def getContainersStatsFromSysFs(container_id, cache=True):
+    metrics = dict()
+    for cgroup in sysfs_metrics_config:
+        cgroup_path = os.path.join(sysfs_base_path, 'docker', container_id)
+        if not os.path.isdir(cgroup_path):
+            continue
+
+    if len(metrics) == 0:
+        return None
+    return metrics
+
 
 ## RETRIEVE INFORMATIONS
 if __name__ == "__main__":
     # Create parser
     parser = argparse.ArgumentParser(description='Command line utility to query containers stats from docker daemon')
-    id_group = parser.add_mutually_exclusive_group()
+    id_group = parser.add_mutually_exclusive_group(required=True)
     id_group.add_argument('--container-name', action='store', dest='container_name',
                                 help='Get stats about this container name using docker api')
     id_group.add_argument('--container-id', action='store', dest='container_id',
@@ -107,9 +126,9 @@ if __name__ == "__main__":
         if os.path.exists(local_query_cache_dir_path):
             if not os.path.isdir(local_query_cache_dir_path):
                 os.unlink(local_query_cache_dir_path)
-                os.mkdir(local_query_cache_dir_path, 0770)
+                os.mkdir(local_query_cache_dir_path, 0o0770)
         else:
-            os.mkdir(local_query_cache_dir_path, 0770)
+            os.mkdir(local_query_cache_dir_path, 0o0770)
 
     ## OUTPUT
     if args.container_name:
