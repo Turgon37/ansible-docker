@@ -5,8 +5,9 @@ import docker
 import hashlib
 import json
 import os
-import time
+import re
 import sys
+import time
 
 # Return dict
 content=None
@@ -33,6 +34,8 @@ sysfs_metrics_config = {
     'memory': {},
     'blkio': {},
 }
+
+re_named_metric = re.compile('(?P<name>[a-zA-Z][a-zA-Z0-9_-]*)\s*(?P<metric>[0-9.]+)')
 
 #os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
 
@@ -96,15 +99,44 @@ def getContainersStatsFromApi(container_name, cache=True):
     return stats
 
 def getContainersStatsFromSysFs(container_id, cache=True):
-    metrics = dict()
+    container_metrics = dict()
     for cgroup in sysfs_metrics_config:
-        cgroup_path = os.path.join(sysfs_base_path, 'docker', container_id)
+        cgroup_path = os.path.join(sysfs_base_path, cgroup, 'docker', container_id)
         if not os.path.isdir(cgroup_path):
             continue
 
-    if len(metrics) == 0:
+        container_metrics[cgroup] = dict()
+        for metric in os.listdir(cgroup_path):
+            metric_path = os.path.join(cgroup_path, metric)
+            # if metric is readable
+            if os.path.isfile(metric_path) and os.access(metric_path, os.R_OK):
+                # get all content
+                with open(metric_path) as f:
+                    lines = f.read().splitlines()
+                if not len(lines):
+                    continue
+                # test for metric format
+                named_metric = re_named_metric.match(lines[0])
+                if named_metric:
+                    container_metrics[cgroup][metric] = dict()
+                    for line in lines:
+                        named_metric = re_named_metric.match(lines[0])
+                        if named_metric:
+                            container_metrics[cgroup][metric][named_metric.group('name')] = named_metric.group('metric')
+                else:
+                    container_metrics[cgroup][metric] = []
+                    for line in lines:
+                        container_metrics[cgroup][metric].append(line)
+
+
+
+
+
+
+
+    if len(container_metrics) == 0:
         return None
-    return metrics
+    return container_metrics
 
 
 ## RETRIEVE INFORMATIONS
