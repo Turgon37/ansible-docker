@@ -114,7 +114,7 @@ if __name__ == "__main__":
     ## OUTPUT
     if args.container_name:
         content = getContainersStatsFromApi(args.container_name, cache=args.use_cache)
-    elif args.container_id
+    elif args.container_id:
         content = getContainersStatsFromSysFs(args.container_id, cache=args.use_cache)
     print(json.dumps(content))
 sys.exit(0)
