@@ -76,14 +76,22 @@ os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
 
 
 def LockException(BaseException):
+    """Simple exception to handle locking related errors
+    """
     pass
 
-def acquireLock(lockfile):
+def acquireLock(lockfile, max_tries=14):
+    """Try to acquire lock with a lockfile
+
+    @param str : the path to the lockfile
+    @param int : the maximal number of lock tries
+    @raise LockException on lock fail
+    """
     tries = 0
     # wait if lock is acquired
     while os.path.isfile(lockfile):
         tries += 1
-        if tries > 14:
+        if tries > max_tries:
             raise LockException('unable to acquire lock')
         time.sleep(0.1)
     with open(lockfile, 'w') as f:
@@ -91,6 +99,10 @@ def acquireLock(lockfile):
     return True
 
 def releaseLock(lockfile):
+    """Remove the lockfile
+
+    @param str : the path to the lockfile
+    """
     if os.path.isfile(lockfile):
         os.unlink(lockfile)
     return True
@@ -109,14 +121,15 @@ def getContainersStatsFromApi(container_name, cache=True):
                 stats = client.containers.get(container_name).stats(stream=False)
             else:
                 stats = client.stats(container_name, stream=False)
+        except docker.errors.NotFound:
+            return None
 
-            if not cache:
-                return stats
+        if not cache:
+            return stats
+        try:
             acquireLock(local_query_cache_lock_path)
             with open(local_query_cache_path, 'w') as f:
                 json.dump(stats, f)
-        except docker.errors.NotFound:
-            return None
         except Exception as e:
             raise e
         finally:
@@ -184,39 +197,66 @@ def treatMetric(cgroup, metric, value, single=False):
     return list(value)
 
 def getContainersStatsFromSysFs(container_id, cache=True):
-    container_metrics = dict()
-    for cgroup in sysfs_metrics_config:
-        cgroup_path = os.path.join(sysfs_base_path, cgroup, 'docker', container_id)
-        if not os.path.isdir(cgroup_path):
-            continue
+    local_query_cache_path = os.path.join(local_query_cache_dir_path, container_id)
+    local_query_cache_lock_path = local_query_cache_path+'.lock'
 
-        # read all metrics from files
-        container_metrics[cgroup] = dict()
-        for metric in os.listdir(cgroup_path):
-            metric_path = os.path.join(cgroup_path, metric)
-            # if metric is readable
-            if os.path.isfile(metric_path) and os.access(metric_path, os.R_OK):
-                # get file content
-                try:
-                    with open(metric_path) as f:
-                        lines = f.read().splitlines()
-                except IOError as e:
-                    container_metrics[cgroup][metric] = str(e)
-                    continue
-                if not len(lines):
-                    continue
-                container_metrics[cgroup][metric] = treatMetric(cgroup, metric, lines)
+    # generate cache
+    if (not cache or
+        not os.path.isfile(local_query_cache_path) or
+        time.time() - os.stat(local_query_cache_path).st_mtime > local_query_cache_life):
 
-        # reparse all generated metrics to add some computed fields
-        for metric in container_metrics[cgroup].keys():
-            # append a _count key with the length of the key elements
-            if (isinstance(container_metrics[cgroup][metric], (list, dict)) and
-                metric+'_count' not in container_metrics[cgroup]):
-                container_metrics[cgroup][metric+'_count'] = len(container_metrics[cgroup][metric])
+        container_metrics = dict()
+        for cgroup in sysfs_metrics_config:
+            cgroup_path = os.path.join(sysfs_base_path, cgroup, 'docker', container_id)
+            if not os.path.isdir(cgroup_path):
+                continue
 
+            # read all metrics from files
+            container_metrics[cgroup] = dict()
+            for metric in os.listdir(cgroup_path):
+                metric_path = os.path.join(cgroup_path, metric)
+                # if metric is readable
+                if os.path.isfile(metric_path) and os.access(metric_path, os.R_OK):
+                    # get file content
+                    try:
+                        with open(metric_path) as f:
+                            lines = f.read().splitlines()
+                    except IOError as e:
+                        container_metrics[cgroup][metric] = str(e)
+                        continue
+                    if not len(lines):
+                        continue
+                    container_metrics[cgroup][metric] = treatMetric(cgroup, metric, lines)
 
-    if len(container_metrics) == 0:
-        return None
+            # reparse all generated metrics to add some computed fields
+            for metric in container_metrics[cgroup].keys():
+                # append a _count key with the length of the key elements
+                if (isinstance(container_metrics[cgroup][metric], (list, dict)) and
+                    metric+'_count' not in container_metrics[cgroup]):
+                    container_metrics[cgroup][metric+'_count'] = len(container_metrics[cgroup][metric])
+
+        if len(container_metrics) == 0:
+            container_metrics = None
+        if not cache:
+            return container_metrics
+        try:
+            acquireLock(local_query_cache_lock_path)
+            with open(local_query_cache_path, 'w') as f:
+                json.dump(container_metrics, f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_query_cache_lock_path)
+    # use cache
+    else:
+        try:
+            acquireLock(local_query_cache_lock_path)
+            with open(local_query_cache_path, 'r') as f:
+                container_metrics = json.load(f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_query_cache_lock_path)
     return container_metrics
 
 
