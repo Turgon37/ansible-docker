@@ -105,17 +105,24 @@ def getContainersStatsFromSysFs(container_id, cache=True):
         if not os.path.isdir(cgroup_path):
             continue
 
+        # read all metrics from files
         container_metrics[cgroup] = dict()
         for metric in os.listdir(cgroup_path):
             metric_path = os.path.join(cgroup_path, metric)
             # if metric is readable
             if os.path.isfile(metric_path) and os.access(metric_path, os.R_OK):
-                # get all content
-                with open(metric_path) as f:
-                    lines = f.read().splitlines()
+                # get file content
+                try:
+                    with open(metric_path) as f:
+                        lines = f.read().splitlines()
+                except IOError as e:
+                    container_metrics[cgroup][metric] = str(e)
+                    continue
                 if not len(lines):
                     continue
                 # test for metric format
+
+                # Named metrics are in format : "NAME VALUE"
                 named_metric = re_named_metric.match(lines[0])
                 if named_metric:
                     container_metrics[cgroup][metric] = dict()
@@ -128,10 +135,11 @@ def getContainersStatsFromSysFs(container_id, cache=True):
                     for line in lines:
                         container_metrics[cgroup][metric].append(line)
 
-
-
-
-
+        # reparse all generated metrics to add some computed fields
+        for metric in container_metrics[cgroup].keys():
+            if (isinstance(container_metrics[cgroup][metric], list) and
+                metric+'_count' not in container_metrics[cgroup]):
+                container_metrics[cgroup][metric+'_count'] = len(container_metrics[cgroup][metric])
 
 
     if len(container_metrics) == 0:
