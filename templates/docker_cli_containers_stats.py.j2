@@ -19,25 +19,60 @@ else:
     string_types = basestring,
 
 # Global variables
-# mapping for return values
-attributes_map = {
-}
-
 # number of second to cache a query result
 local_query_cache_life = 55
+# the path to the cache directory
 local_query_cache_dir_path = '/tmp/zbx_dck_csqc_{}'.format(hashlib.md5(os.getenv('USER').encode()).hexdigest())
 
+# the base path of the sys fs tree
 sysfs_base_path = '/sys/fs/cgroup'
+# list of cgroup tree to discover
 sysfs_metrics_config = {
-    'cpu': {},
-    'cpuacct': {},
-    'memory': {},
+    'cpu': {
+        'cpu.stat.*': {'single': True, 'type': int},
+        'cpu.cfs_period_us': {'single': True, 'type': int},
+        'cpu.cfs_quota_us': {'single': True, 'type': int},
+        'cpu.rt_period_us': {'single': True, 'type': int},
+        'cpu.rt_runtime_us': {'single': True, 'type': int},
+        'cpuacct.stat.*': {'single': True, 'type': int},
+        'cpuacct.usage': {'single': True, 'type': int},
+        'cpuacct.usage_percpu': {'single': True, 'indexed_colums': True},
+    },
+    'cpuacct': {
+        'cpu.stat.*': {'single': True, 'type': int},
+        'cpu.cfs_period_us': {'single': True, 'type': int},
+        'cpu.cfs_quota_us': {'single': True, 'type': int},
+        'cpu.rt_period_us': {'single': True, 'type': int},
+        'cpu.rt_runtime_us': {'single': True, 'type': int},
+        'cpuacct.stat.*': {'single': True, 'type': int},
+        'cpuacct.usage': {'single': True, 'type': int},
+        'cpuacct.usage_percpu': {'single': True, 'indexed_colums': True},
+    },
+    'memory': {
+        'memory.usage_in_bytes': {'single': True, 'type': int},
+        'memory.max_usage_in_bytes': {'single': True, 'type': int},
+        'memory.limit_in_bytes': {'single': True, 'type': int},
+        'memory.soft_limit_in_bytes': {'single': True, 'type': int},
+        'memory.memsw.*': {'single': True, 'type': int},
+        'memory.kmem.usage_in_bytes': {'single': True, 'type': int},
+        'memory.kmem.max_usage_in_bytes': {'single': True, 'type': int},
+        'memory.kmem.limit_in_bytes': {'single': True, 'type': int},
+        'memory.kmem.failcnt': {'single': True, 'type': int},
+        'memory.kmem.tcp.*': {'single': True, 'type': int},
+        'memory.oom_control_count': {'single': True, 'type': int},
+        'memory.swappiness': {'single': True, 'type': int},
+        'memory.use_hierarchy': {'single': True, 'type': int},
+        'memory.failcnt': {'single': True, 'type': int},
+        'memory.stat.*': {'single': True, 'type': int},
+        'memory.oom_control.*': {'single': True, 'type': int},
+    },
     'blkio': {},
 }
-
+# This regular expression matchs all named metrics in sysfs files
 re_named_metric = re.compile('(?P<name>[a-zA-Z][a-zA-Z0-9_-]*)\s*(?P<metric>[0-9.]+)')
 
-#os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
+# Docker cli configuration
+os.environ['DOCKER_HOST']='{{ docker_server__clients_host }}'
 
 
 def LockException(BaseException):
@@ -98,6 +133,56 @@ def getContainersStatsFromApi(container_name, cache=True):
             releaseLock(local_query_cache_lock_path)
     return stats
 
+def treatMetric(cgroup, metric, value, single=False):
+    # use the configured type to store metric
+    metric_config = None
+
+    metric_wildcard = '.'.join(metric.split('.')[:-1] + ['*'])
+    if metric in sysfs_metrics_config[cgroup]:
+        metric_config = sysfs_metrics_config[cgroup][metric]
+    elif metric_wildcard in sysfs_metrics_config[cgroup]:
+        metric_config = sysfs_metrics_config[cgroup][metric_wildcard]
+
+    if metric_config:
+        # treat the content as a single value
+        if 'single' in metric_config and metric_config['single'] or single:
+            if isinstance(value, (list, dict)):
+                if len(value) == 1:
+                    value = value[0]
+                else:
+                    return '## ERROR {} non singlable'.format(str(value))
+        if 'type' in metric_config:
+            try:
+                return metric_config['type'](value)
+            except ValueError as e:
+                return '## ERROR ' + str(e)
+        if 'indexed_colums' in metric_config:
+            result = dict()
+            for v in value.split():
+                result[len(result)] = v
+            return result
+        return value
+
+    # test for metric format
+    # Named metrics are in format : "NAME VALUE"
+    named_metric = None
+    if not isinstance(value, (list, dict)):
+        value = [value]
+    named_metric = re_named_metric.match(value[0])
+    if named_metric:
+        result = dict()
+        for v in value:
+            named_metric = re_named_metric.match(v)
+            metric_name = named_metric.group('name')
+            metric_value = named_metric.group('metric')
+            if named_metric:
+                result[metric_name] = treatMetric(cgroup, metric + '.' + metric_name, metric_value, single)
+            else:
+                result[metric_name] = '## ERROR format'
+        return result
+    # default behaviour is to put all items in a list
+    return list(value)
+
 def getContainersStatsFromSysFs(container_id, cache=True):
     container_metrics = dict()
     for cgroup in sysfs_metrics_config:
@@ -120,24 +205,12 @@ def getContainersStatsFromSysFs(container_id, cache=True):
                     continue
                 if not len(lines):
                     continue
-                # test for metric format
-
-                # Named metrics are in format : "NAME VALUE"
-                named_metric = re_named_metric.match(lines[0])
-                if named_metric:
-                    container_metrics[cgroup][metric] = dict()
-                    for line in lines:
-                        named_metric = re_named_metric.match(lines[0])
-                        if named_metric:
-                            container_metrics[cgroup][metric][named_metric.group('name')] = named_metric.group('metric')
-                else:
-                    container_metrics[cgroup][metric] = []
-                    for line in lines:
-                        container_metrics[cgroup][metric].append(line)
+                container_metrics[cgroup][metric] = treatMetric(cgroup, metric, lines)
 
         # reparse all generated metrics to add some computed fields
         for metric in container_metrics[cgroup].keys():
-            if (isinstance(container_metrics[cgroup][metric], list) and
+            # append a _count key with the length of the key elements
+            if (isinstance(container_metrics[cgroup][metric], (list, dict)) and
                 metric+'_count' not in container_metrics[cgroup]):
                 container_metrics[cgroup][metric+'_count'] = len(container_metrics[cgroup][metric])
 
