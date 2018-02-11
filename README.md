@@ -103,9 +103,9 @@ To use this role create or update your playbook according the following examples
       vars:
         storage-driver: devicemapper
         storage-opts:
-          dm.thinpooldev: /dev/mapper/docker-thinpool
-          dm.use_deferred_removal: True
-          dm.use_deferred_deletion: True
+          - 'dm.thinpooldev=/dev/mapper/docker-thinpool'
+          - 'dm.use_deferred_removal=true'
+          - 'dm.use_deferred_deletion=true'
 ```
 
 
