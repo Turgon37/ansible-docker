@@ -8,6 +8,7 @@ docker_server__conflict_packages_names:
 docker_server__required_packages_names:
   - apt-transport-https
   - ca-certificates
+  - curl
   - gnupg2
   - software-properties-common
   - python-docker

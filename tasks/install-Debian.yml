@@ -2,14 +2,25 @@
 
 - name: Add docker repository GPG key to apt keyring
   apt_key:
-    url:   '{{ item.url|d(omit) }}'
-    data:  '{{ item.data|d(omit) }}'
+    id:    '{{ item.id }}'
+    url:   '{{ item.url }}'
     state: "{{ item.state|d('present') }}"
   with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
                     docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
                       docker_server__gpg_keys[ansible_os_family] if (ansible_os_family in docker_server__gpg_keys) else ([])
                     )
                   ) }}'
+  register: _docker_server__apt_key
+  ignore_errors: '{{ httpproxy is defined }}'
+
+- name: Add repository APT key using http proxy
+  shell: 'curl --location --proxy "{{ httpproxy }}" "{{ item.url }}" | apt-key add -'
+  with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
+                    docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
+                      docker_server__gpg_keys[ansible_os_family] if (ansible_os_family in docker_server__gpg_keys) else ([])
+                    )
+                  ) }}'
+  when: _docker_server__apt_key|failed and httpproxy is defined
 
 - name: Compute repository url
   shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} {{ docker_server__repository_release_channel }}'
