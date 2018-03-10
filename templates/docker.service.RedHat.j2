@@ -4,6 +4,7 @@ Documentation=https://docs.docker.com
 After=network.target
 
 [Service]
+EnvironmentFile=-/etc/environment
 EnvironmentFile=-{{ docker_server__config_vars_file }}
 Type=notify
 # the default is not to use systemd for cgroups because the delegate issues still

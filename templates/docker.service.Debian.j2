@@ -5,6 +5,7 @@ After=network.target docker.socket firewalld.service
 Requires=docker.socket
 
 [Service]
+EnvironmentFile=-/etc/environment
 EnvironmentFile=-{{ docker_server__config_vars_file }}
 Type=notify
 # the default is not to use systemd for cgroups because the delegate issues still
