@@ -20,7 +20,7 @@
                       docker_server__gpg_keys[ansible_os_family] if (ansible_os_family in docker_server__gpg_keys) else ([])
                     )
                   ) }}'
-  when: _docker_server__apt_key|failed and httpproxy is defined
+  when: _docker_server__apt_key is failed and httpproxy is defined
 
 - name: Compute repository url
   shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} {{ docker_server__repository_release_channel }}'

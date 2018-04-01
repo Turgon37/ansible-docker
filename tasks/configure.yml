@@ -44,3 +44,18 @@
     group: root
     mode:  0640
   notify: ['restart-docker-server']
+
+- name: Configure maintenance jobs
+  cron:
+    name:      '{{ item.key }}'
+    day:       '{{ item.value.day|d(omit) }}'
+    month:     '{{ item.value.month|d(omit) }}'
+    weekday:   '{{ item.value.weekday|d(omit) }}'
+    hour:      '{{ item.value.hour|d(omit) }}'
+    minute:    '{{ item.value.minute|d(omit) }}'
+    job:       '{{ item.value.job }}'
+    user:      root
+    cron_file: "{{ item.key|lower|regex_replace('\\s+', '_') }}"
+    disabled:  '{{ docker_server__maintenance_disabled }}'
+    state:     "{{ item.value.state|d('present') }}"
+  with_dict: '{{ docker_server__maintenance_jobs }}'

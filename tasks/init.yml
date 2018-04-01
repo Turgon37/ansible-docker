@@ -6,3 +6,4 @@
       - docker_server__edition in ['ce', 'ee']
       - docker_server__repository_release_channel in docker_server__repository_available_release_channels
       - (docker__tlscert is defined and docker__tlskey is defined) or ( docker__tlscert is not defined and docker__tlskey is not defined)
+      - docker_server__maintenance_frequency in ['hourly', 'daily', 'weekly']

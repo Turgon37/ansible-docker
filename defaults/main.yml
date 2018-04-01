@@ -124,8 +124,8 @@ docker_server__config_default:
   log-level: info
   log-driver: json-file
   log-opts:
-    max-file: "5"
-    max-size: "10m"
+    max-file: '5'
+    max-size: '10m'
 
 # Docker options intended to be used at global inventory level
 docker_server__config_global: {}
@@ -139,6 +139,31 @@ docker_server__config_options: '{{ docker_server__config_default
   |combine(docker_server__config_global)
   |combine(docker_server__config_group)
   |combine(docker_server__config_host) }}'
+
+# Maintenance
+# At which frequency to run maintenance tasks
+docker_server__maintenance_frequency: daily
+
+# Disable all maintenance cronjobs
+docker_server__maintenance_disabled: False
+
+# Use these hook in your maintenance cronjobs entries
+docker_server__maintenance_hour: "{{ '*' if docker_server__maintenance_frequency == 'hourly' else 0 }}"
+docker_server__maintenance_weekday: "{{ 'mon' if docker_server__maintenance_frequency == 'weekly' else '*' }}"
+
+docker_server__default_maintenance_jobs:
+  _docker_server_clean_dangling_images:
+    minute:  5
+    hour:    '{{ docker_server__maintenance_hour }}'
+    weekday: '{{ docker_server__maintenance_weekday }}'
+    user:    root
+    job:     /usr/bin/env sh -c 'imgs=`docker images --filter "dangling=true" --quiet`; [ -n "$imgs" ] && docker rmi $imgs'
+
+# Additionnal maintenance jobs that you can use
+docker_server__additional_maintenance_jobs: {}
+
+# Merged list of maintenance jobs
+docker_server__maintenance_jobs: '{{ docker_server__default_maintenance_jobs|combine(docker_server__additional_maintenance_jobs) }}'
 
 # List of GPG keys to add
 docker_server__gpg_keys:
