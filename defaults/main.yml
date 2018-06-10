@@ -83,7 +83,7 @@ docker_server__config_file: '{{ docker_server__config_dir }}/daemon.json'
 #docker_server__config_vars_file:
 
 # The base directory of docker persistent datas
-docker_server__directory: /var/lib/docker
+docker_server__data_directory: /var/lib/docker
 
 # Restricted group allowed to access to socket
 docker_server__socket_group: docker
@@ -115,7 +115,7 @@ docker_server__hosts: '{{ docker_server__hosts_default
 
 # Default options provided by the role
 docker_server__config_default:
-  data-root: '{{ docker_server__directory }}'
+  data-root: '{{ docker_server__data_directory }}'
   hosts: '{{ docker_server__hosts }}'
   icc: True
   iptables: True

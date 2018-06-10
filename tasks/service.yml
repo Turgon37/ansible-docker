@@ -16,8 +16,6 @@
 
 - name: Reload systemd
   systemd:
-    name:          '{{ docker_server__service_name }}'
-    enabled:       yes
     daemon_reload: yes
   when: _docker_server__service is changed and ansible_service_mgr == 'systemd'
 
