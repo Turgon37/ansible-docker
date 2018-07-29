@@ -4,11 +4,11 @@
   stat:
     path: '/etc/yum.repos.d/docker-{{ docker_server__edition }}.repo'
   register: _docker_server__repo
-  check_mode: no
+  check_mode: false
 
 - name: Add docker repository GPG key to yum keyring
   rpm_key:
-    key:   '{{ item.url|d(omit) }}'
+    key: '{{ item.url|d(omit) }}'
     state: "{{ item.state|d('present') }}"
   with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
                     docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
@@ -22,19 +22,19 @@
 
 - name: Enable selected Docker repository
   ini_file:
-    dest:            '/etc/yum.repos.d/docker-{{ docker_server__edition }}.repo'
-    section:         'docker-{{ docker_server__edition }}-{{ docker_server__repository_release_channel }}'
-    option:          enabled
-    value:           1
-    create:          no
-    no_extra_spaces: yes
+    dest: '/etc/yum.repos.d/docker-{{ docker_server__edition }}.repo'
+    section: 'docker-{{ docker_server__edition }}-{{ docker_server__repository_release_channel }}'
+    option: enabled
+    value: 1
+    create: false
+    no_extra_spaces: true
 
 - name: Disable unselected Docker repository
   ini_file:
-    dest:            '/etc/yum.repos.d/docker-{{ docker_server__edition }}.repo'
-    section:         'docker-{{ docker_server__edition }}-{{ item }}'
-    option:          enabled
-    value:           0
-    create:          no
-    no_extra_spaces: yes
+    dest: '/etc/yum.repos.d/docker-{{ docker_server__edition }}.repo'
+    section: 'docker-{{ docker_server__edition }}-{{ item }}'
+    option: enabled
+    value: 0
+    create: false
+    no_extra_spaces: true
   with_items: "{{ docker_server__repository_available_release_channels|difference([docker_server__repository_release_channel]) }}"

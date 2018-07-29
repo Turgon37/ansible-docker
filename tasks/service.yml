@@ -2,7 +2,7 @@
 
 - name: Install systemd unit file
   template:
-    src:  'docker.service.{{ ansible_os_family }}.j2'
+    src: docker.service.j2
     dest: '/etc/systemd/system/{{ docker_server__service_name }}.service'
   when: ansible_service_mgr == 'systemd'
   notify: ['restart-docker-server']
@@ -10,38 +10,39 @@
 
 - name: Remove sysvinit unit file
   file:
-    path:  /etc/init.d/docker
+    path: /etc/init.d/docker
     state: absent
   when: ansible_service_mgr == 'systemd'
+  register: _docker_server__service_sysvinit
 
 - name: Reload systemd
   systemd:
-    daemon_reload: yes
-  when: _docker_server__service is changed and ansible_service_mgr == 'systemd'
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd' and (_docker_server__service is changed or _docker_server__service_sysvinit is changed)
 
 - meta: flush_handlers
 
 - name: Ensure Docker is started and enabled on boot
   service:
-    name:    '{{ docker_server__service_name }}'
+    name: '{{ docker_server__service_name }}'
     enabled: '{{ docker_server__service_enabled|bool }}'
-    state:   "{{ docker_server__service_enabled|bool|ternary('started', 'stopped') }}"
+    state: "{{ docker_server__service_enabled|bool|ternary('started', 'stopped') }}"
 
 # restart feature
 - name: Test if docker need to be restart
   stat:
     path: '{{ docker_server__service_restart_stamp_file }}'
   register: _docker_server__restart_file
-  check_mode: False
+  check_mode: false
 
 - name: Restart docker if needed and allowed
   service:
-    name:  '{{ docker_server__service_name }}'
+    name: '{{ docker_server__service_name }}'
     state: restarted
   when: docker_server__service_enabled|bool and docker_server__service_restartable|bool and _docker_server__restart_file.stat.exists
 
 - name: Remove stamp file if docker daemon is disabled
   file:
-    path:  '{{ docker_server__service_restart_stamp_file }}'
+    path: '{{ docker_server__service_restart_stamp_file }}'
     state: absent
   when: not docker_server__service_enabled|bool

@@ -13,4 +13,4 @@ docker_server__required_packages_names:
   - software-properties-common
   - python-docker
 
-docker_server__config_vars_file: /etc/default/docker
+docker_server__service_environment: /etc/default/docker

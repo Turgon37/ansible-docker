@@ -2,13 +2,13 @@
 
 - name: Remove conflicting packages
   package:
-    name:  '{{ item }}'
+    name: '{{ item }}'
     state: absent
   with_items: '{{ docker_server__conflict_packages_names }}'
 
 - name: Install required packages
   package:
-    name:  '{{ item }}'
+    name: '{{ item }}'
     state: present
   with_items: '{{ docker_server__required_packages_names }}'
 
@@ -23,7 +23,7 @@
 
 - name: Install docker engine
   package:
-    name:  '{{ docker_server__package_name }}'
+    name: '{{ docker_server__package_name }}'
     state: present
 
 - import_tasks: install-compose.yml

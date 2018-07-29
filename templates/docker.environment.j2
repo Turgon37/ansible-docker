@@ -1,7 +1,3 @@
-#
-# {{ ansible_managed }}
-#
-
-# Docker environment configuration file
+{{ ansible_managed|comment(decoration='# ') }}
 
 OPTIONS="--config-file={{ docker_server__config_file }} --group {{ docker_server__socket_group }}"

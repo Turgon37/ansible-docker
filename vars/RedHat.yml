@@ -11,4 +11,4 @@ docker_server__required_packages_names:
   - lvm2
   - python-docker-py
 
-docker_server__config_vars_file: /etc/sysconfig/docker
+docker_server__service_environment: /etc/sysconfig/docker

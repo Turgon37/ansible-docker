@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
 import json
-import os
 import re
 import subprocess
 import sys
 
-content=dict()
+content = dict()
 
 # docker-compose version 1.17.1, build 6d101fb
 version_re = re.compile('^docker-compose\s*version\s*(?P<version>(?P<major>[0-9]+)[\.0-9]+).*$')
 try:
-    result = subprocess.Popen(['{{ docker_server__compose_path }}', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    result = subprocess.Popen(['{{ docker_server__compose_path }}', '--version'],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              universal_newlines=True)
     (stdout, stderr) = result.communicate()
     output = stdout + stderr
     for line in output.splitlines():
@@ -23,7 +25,7 @@ try:
 except subprocess.CalledProcessError as e:
     content['error'] = str(e)
 
-if len(content) == 0:
+if not content:
     content = None
 
 print(json.dumps(content))

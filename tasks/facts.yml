@@ -2,21 +2,23 @@
 
 - name: Create custom fact directory
   file:
-    path:  "{{ facts__dir|d('/etc/ansible/facts.d') }}"
+    path: "{{ facts__dir|d('/etc/ansible/facts.d') }}"
     owner: root
     group: root
-    mode:  0755
+    mode: 0755
     state: directory
+  tags: ['docker-server', 'docker-server-facts']
 
 - name: Insert custom fact files
   template:
-    src:   '{{ item.src }}'
-    dest:  "{{ facts__dir|d('/etc/ansible/facts.d') }}/{{ item.dest }}"
+    src: '{{ item.src }}'
+    dest: "{{ facts__dir|d('/etc/ansible/facts.d') }}/{{ item.dest }}"
     owner: root
     group: root
-    mode:  0755
+    mode: 0755
   with_items:
-    - src:  docker.fact.py.j2
+    - src: docker.fact.py.j2
       dest: docker.fact
-    - src:  docker_compose.fact.py.j2
+    - src: docker_compose.fact.py.j2
       dest: docker_compose.fact
+  tags: ['docker-server', 'docker-server-facts']

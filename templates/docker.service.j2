@@ -1,24 +1,26 @@
+{{ ansible_managed|comment(decoration='# ') }}
+
 [Unit]
 Description=Docker Application Container Engine
 Documentation=https://docs.docker.com
-After=network.target
+After=network.target docker.socket firewalld.service
+Requires=docker.socket
 
 [Service]
 EnvironmentFile=-/etc/environment
-EnvironmentFile=-{{ docker_server__config_vars_file }}
+{% if docker_server__service_environment is defined %}
+EnvironmentFile={{ docker_server__service_environment }}
+{% endif %}
 Type=notify
-# the default is not to use systemd for cgroups because the delegate issues still
-# exists and systemd currently does not support the cgroup feature set required
-# for containers run by docker
 {% if not docker_server__service_restartable|bool %}
-# Remove must restart stamp
+# Remove must restart stamp file
 ExecStartPre=-/usr/bin/env rm -f {{ docker_server__service_restart_stamp_file }}
 {% endif %}
-ExecStart=/usr/bin/dockerd $OPTIONS
+ExecStart={{ docker_server__service_executable }} $OPTIONS
 ExecReload=/bin/kill -s HUP $MAINPID
+LimitNOFILE=1048576
 # Having non-zero Limit*s causes performance problems due to accounting overhead
 # in the kernel. We recommend using cgroups to do container-local accounting.
-LimitNOFILE=infinity
 LimitNPROC=infinity
 LimitCORE=infinity
 # Uncomment TasksMax if your systemd version supports it.
@@ -31,4 +33,4 @@ Delegate=yes
 KillMode=process
 
 [Install]
-WantedBy=multi-user.target 
+WantedBy=multi-user.target

@@ -12,22 +12,28 @@
       skip: true
   tags: ['always']
 
-- import_tasks: init.yml
+- name: Import init tasks
+  import_tasks: init.yml
   tags: ['always']
 
-- import_tasks: install.yml
+- name: Import install tasks
+  import_tasks: install.yml
   tags: ['docker-server', 'docker-server-install']
 
-- import_tasks: configure.yml
+- name: Import configuration tasks
+  import_tasks: configure.yml
   tags: ['docker-server', 'docker-server-configure']
 
-- import_tasks: service.yml
+- name: Import service tasks
+  import_tasks: service.yml
   tags: ['docker-server', 'docker-server-service']
 
-- include_tasks: 'monitoring/{{ docker_server__monitoring }}.yml'
+- name: Optionally include monitoring tasks
+  include_tasks: 'monitoring/{{ docker_server__monitoring }}.yml'
   when: docker_server__monitoring is defined
   tags: ['docker-server', 'docker-server-monitoring']
 
-- include_tasks: facts.yml
+- name: Optionally include facts tasks
+  include_tasks: facts.yml
   when: docker_server__facts|bool
   tags: ['docker-server', 'docker-server-facts']

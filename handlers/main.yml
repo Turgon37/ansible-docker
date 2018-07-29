@@ -3,14 +3,14 @@
 
 - name: restart-docker-daemon
   service:
-    name:  '{{ docker_server__service_name }}'
+    name: '{{ docker_server__service_name }}'
     state: restarted
   when: docker_server__service_enabled|bool and docker_server__service_restartable|bool
   listen: restart-docker-server
 
 - name: mark-docker-daemon-to-restart
   file:
-    path:  '{{ docker_server__service_restart_stamp_file }}'
+    path: '{{ docker_server__service_restart_stamp_file }}'
     state: touch
   when: docker_server__service_enabled|bool and not docker_server__service_restartable|bool
   listen: restart-docker-server
