@@ -3,4 +3,5 @@
   hosts: all
   any_errors_fatal: true
   roles:
+    - role: turgon37.cron
     - role: ansible-docker-server
