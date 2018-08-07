@@ -19,6 +19,7 @@
   systemd:
     daemon_reload: true
   when: ansible_service_mgr == 'systemd' and (_docker_server__service is changed or _docker_server__service_sysvinit is changed)
+  changed_when: true
 
 - meta: flush_handlers
 
