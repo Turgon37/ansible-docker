@@ -22,7 +22,7 @@ docker_server__edition: ce
 docker_server__package_name: 'docker-{{ docker_server__edition }}'
 
 # Base url for all repository urls
-docker_server__repository_base_url: 'https://download.docker.com'
+docker_server__repository_base_url: https://download.docker.com
 
 # Used only for Debian/Ubuntu. Switch 'stable' to 'edge' if needed.
 docker_server__repository_release_channel: stable
@@ -34,13 +34,17 @@ docker_server__repository_available_release_channels:
   - test
 
 # Version of docker-compose to download
-docker_server__compose_version: 1.18.0
+docker_server__compose_version: 1.22.0
 
 # If true the docker-compose tool will be installed
 docker_server__compose_state: present
 
 # Path to the docker-compose tool binary
 docker_server__compose_path: /usr/local/bin/docker-compose
+
+# List of supported docker-compose architecture
+docker_server__compose_architectures:
+  - x86_64
 
 # The full url used to get docker-compose
 docker_server__compose_url: 'https://github.com/docker/compose/releases/download/{{ docker_server__compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
@@ -51,9 +55,13 @@ docker_server__compose_source_checksums:
   1.18.0:
     Linux:
       x86_64: sha256:b2f2c3834107f526b1d9cc8d8e0bdd132c6f1495b036a32cbc61b5288d2e2a01
+  1.22.0:
+    Linux:
+      x86_64: sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9
 
 # Docker image to use for host on which docker-compose native tool is not available
 docker_server__compose_workaround_image: '{{ docker_server__compose_workaround_images[docker_server__compose_version][ansible_system][ansible_architecture] }}'
+
 # Mapping of dokcer images name for the above setting
 docker_server__compose_workaround_images:
   1.18.0:

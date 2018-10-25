@@ -2,17 +2,16 @@
 
 - name: Remove conflicting packages
   package:
-    name: '{{ item }}'
+    name: '{{ docker_server__conflict_packages_names|list }}'
     state: absent
-  with_items: '{{ docker_server__conflict_packages_names }}'
 
 - name: Install required packages
   package:
-    name: '{{ item }}'
+    name: '{{ docker_server__required_packages_names|list }}'
     state: present
-  with_items: '{{ docker_server__required_packages_names }}'
 
-- include_tasks: '{{ file_item }}'
+- name: Importing distribution specific install tasks
+  include_tasks: '{{ file_item }}'
   with_first_found:
     - files:
         - 'install-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
@@ -26,4 +25,5 @@
     name: '{{ docker_server__package_name }}'
     state: present
 
-- import_tasks: install-compose.yml
+- name: Importing composer installation tasks
+  import_tasks: install-compose.yml

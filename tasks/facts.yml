@@ -17,8 +17,8 @@
     group: root
     mode: 0755
   with_items:
-    - src: docker.fact.py.j2
+    - src: docker.facts.py.j2
       dest: docker.fact
-    - src: docker_compose.fact.py.j2
+    - src: docker_compose.facts.py.j2
       dest: docker_compose.fact
   tags: ['docker-server', 'docker-server-facts']

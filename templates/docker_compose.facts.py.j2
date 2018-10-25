@@ -22,7 +22,7 @@ try:
             content['version_full'] = match.group('version')
             content['version_major'] = match.group('major')
             break
-except subprocess.CalledProcessError as e:
+except (subprocess.CalledProcessError, OSError) as e:
     content['error'] = str(e)
 
 if not content:
