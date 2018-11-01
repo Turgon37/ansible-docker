@@ -10,6 +10,50 @@
     name: '{{ docker_server__required_packages_names|list }}'
     state: present
 
+- name: Download Docker repository GPG key into local folder
+  get_url:
+    url: '{{ item.url }}'
+    dest: '/tmp/docker_server__gpg-{{ item.id }}'
+    mode: 0644
+  with_items: '{{
+    docker_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys)
+    else (
+      docker_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys)
+      else (
+        docker_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in docker_server__gpg_keys)
+        else ([])
+      )
+    )}}'
+  when: item.state|d('present') == 'present'
+  register: _docker_server__gpg_download
+  until: _docker_server__gpg_download is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+  delegate_to: localhost
+
+- name: Upload Docker repository GPG key to server
+  copy:
+    src: '/tmp/docker_server__gpg-{{ item.id }}'
+    dest: '/tmp/docker_server__gpg-{{ item.id }}'
+  with_items: '{{
+    docker_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys)
+    else (
+      docker_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys)
+      else (
+        docker_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in docker_server__gpg_keys)
+        else ([])
+      )
+    )}}'
+  when: item.state|d('present') == 'present'
+  check_mode: false
+
 - name: Importing distribution specific install tasks
   include_tasks: '{{ file_item }}'
   with_first_found:

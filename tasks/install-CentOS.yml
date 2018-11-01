@@ -8,13 +8,20 @@
 
 - name: Add docker repository GPG key to yum keyring
   rpm_key:
-    key: '{{ item.url|d(omit) }}'
+    key: "{{ item.id if item.state|d('present') != 'present' else '/tmp/docker_server__gpg-'~item.id }}"
     state: "{{ item.state|d('present') }}"
-  with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
-                    docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
-                      docker_server__gpg_keys[ansible_os_family] if (ansible_os_family in docker_server__gpg_keys) else ([])
-                    )
-                  ) }}'
+  with_items: '{{
+    docker_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys)
+    else (
+      docker_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys)
+      else (
+        docker_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in docker_server__gpg_keys)
+        else ([])
+      )
+    )}}'
 
 - name: Add Docker repo for Yum based hosts
   command: 'yum-config-manager --add-repo {{ docker_server__repository_base_url }}/linux/centos/docker-{{ docker_server__edition }}.repo'
