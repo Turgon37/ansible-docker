@@ -1,8 +1,22 @@
 ---
 
+- name: Get installed version of Systemd
+  command: /usr/bin/env systemctl --version
+  when: ansible_local.systemd is not defined
+  changed_when: false
+  check_mode: false
+  register: _docker_server__systemd_version_raw
+
+- name: Create docker_server__systemd_version variable
+  set_fact:
+    _docker_server__systemd_version:
+      "{{ _docker_server__systemd_version_raw.stdout_lines[0]|regex_replace('^systemd\\s+([0-9]+).*', '\\1')
+      if _docker_server__systemd_version_raw is not skipped
+      else ansible_local.systemd.version_full }}"
+
 - name: Install systemd unit file
   template:
-    src: docker.service.j2
+    src: docker.systemd.j2
     dest: '/etc/systemd/system/{{ docker_server__service_name }}.service'
   when: ansible_service_mgr == 'systemd'
   notify: ['restart-docker-server']
@@ -18,7 +32,9 @@
 - name: Reload systemd
   systemd:
     daemon_reload: true
-  when: ansible_service_mgr == 'systemd' and (_docker_server__service is changed or _docker_server__service_sysvinit is changed)
+  when: ansible_service_mgr == 'systemd'
+    and (_docker_server__service is changed
+      or _docker_server__service_sysvinit is changed)
   changed_when: true
 
 - meta: flush_handlers

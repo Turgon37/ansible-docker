@@ -28,7 +28,9 @@ LimitCORE=infinity
 #TasksMax=infinity
 TimeoutStartSec=0
 # set delegate yes so that systemd does not reset the cgroups of docker containers
+{% if _docker_server__systemd_version is version('218', '>=') %}
 Delegate=yes
+{% endif %}
 # kill only the docker process, not all processes in the cgroup
 KillMode=process
 

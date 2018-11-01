@@ -5,3 +5,4 @@
   roles:
     - role: turgon37.cron
     - role: ansible-docker-server
+      docker_server__service_enabled: false
