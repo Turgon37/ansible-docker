@@ -26,8 +26,11 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
 provisioner:
   name: ansible
+  options:
+    vv: true
   lint:
     name: ansible-lint
+    enabled: false
 scenario:
   name: default
 verifier:

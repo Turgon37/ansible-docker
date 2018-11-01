@@ -2,9 +2,10 @@
 # handlers file for docker-server
 
 - name: restart-docker-daemon
-  service:
-    name: '{{ docker_server__service_name }}'
-    state: restarted
+  shell: 'systemctl status {{ docker_server__service_name }}; ls -l /etc/systemd/system/docker.service; systemctl start {{ docker_server__service_name }}'
+  # service:
+  #   name: '{{ docker_server__service_name }}'
+  #    state: restarted
   when: docker_server__service_enabled|bool and docker_server__service_restartable|bool
   listen: restart-docker-server
 
