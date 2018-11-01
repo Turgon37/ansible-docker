@@ -3,8 +3,10 @@
 [Unit]
 Description=Docker Application Container Engine
 Documentation=https://docs.docker.com
-After=network.target docker.socket firewalld.service
+After=network.target{% if ansible_os_family == 'Debian' %} docker.socket{% endif %} firewalld.service
+{% if ansible_os_family == 'Debian' %}
 Requires=docker.socket
+{% endif %}
 
 [Service]
 EnvironmentFile=-/etc/environment
