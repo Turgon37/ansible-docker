@@ -1,28 +1,28 @@
 ---
 # defaults file for docker-server
 
-# Simple placeholder to allow other roles to detect this role
-docker_server__role: True
-
 # Enable fact deployment
-docker_server__facts: True
+docker_server__facts: true
 
 # Choose the monitoring backend to configure (if available)
-#docker_server__monitoring:
+# docker_server__monitoring:
 
+
+### INSTALLATION CONFIGURATION
+# ---------------------------------------
 ## Docker installation
 # List of package to remove
 docker_server__conflict_packages_names: []
 docker_server__required_packages_names: []
 
 # Edition can be one of: 'ce' (Community Edition) or 'ee' (Enterprise Edition).
-docker_server__edition: 'ce'
+docker_server__edition: ce
 
 # Name of main docker package
 docker_server__package_name: 'docker-{{ docker_server__edition }}'
 
 # Base url for all repository urls
-docker_server__repository_base_url: 'https://download.docker.com'
+docker_server__repository_base_url: https://download.docker.com
 
 # Used only for Debian/Ubuntu. Switch 'stable' to 'edge' if needed.
 docker_server__repository_release_channel: stable
@@ -34,13 +34,17 @@ docker_server__repository_available_release_channels:
   - test
 
 # Version of docker-compose to download
-docker_server__compose_version: 1.18.0
+docker_server__compose_version: 1.22.0
 
 # If true the docker-compose tool will be installed
 docker_server__compose_state: present
 
 # Path to the docker-compose tool binary
 docker_server__compose_path: /usr/local/bin/docker-compose
+
+# List of supported docker-compose architecture
+docker_server__compose_architectures:
+  - x86_64
 
 # The full url used to get docker-compose
 docker_server__compose_url: 'https://github.com/docker/compose/releases/download/{{ docker_server__compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
@@ -51,36 +55,46 @@ docker_server__compose_source_checksums:
   1.18.0:
     Linux:
       x86_64: sha256:b2f2c3834107f526b1d9cc8d8e0bdd132c6f1495b036a32cbc61b5288d2e2a01
+  1.22.0:
+    Linux:
+      x86_64: sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9
 
 # Docker image to use for host on which docker-compose native tool is not available
 docker_server__compose_workaround_image: '{{ docker_server__compose_workaround_images[docker_server__compose_version][ansible_system][ansible_architecture] }}'
+
 # Mapping of dokcer images name for the above setting
 docker_server__compose_workaround_images:
   1.18.0:
     Linux:
       armv7l: turgon37/docker-compose:armhf-1.18.0dev
 
+
+### SERVICE CONFIGURATION
+# ---------------------------------------
 ## Docker service
 # The name of the systemd docker service
 docker_server__service_name: docker
 
 # If true the docker service will be started and enabled
-docker_server__service_enabled: True
+docker_server__service_enabled: true
 
 # If this is set to true, ansible will automatically restart docker daemon on changes
-docker_server__service_restartable: True
+docker_server__service_restartable: true
 
 # Path to the must restart stamp file
-docker_server__service_restart_stamp_file: '/var/local/docker-must-restart-stamp'
+docker_server__service_restart_stamp_file: /var/local/docker-must-restart-stamp
 
+# Path to docker binary
+docker_server__service_executable: /usr/bin/dockerd
+
+# Path to service's environment variables
+# docker_server__service_environment:
 
 ## Docker configuration
 # The main configuration directory
-docker_server__config_dir: /etc/docker
+docker_server__config_directory: /etc/docker
 # The main configuration file
-docker_server__config_file: '{{ docker_server__config_dir }}/daemon.json'
-# Path to service's environment variables
-#docker_server__config_vars_file:
+docker_server__config_file: '{{ docker_server__config_directory }}/daemon.json'
 
 # The base directory of docker persistent datas
 docker_server__data_directory: /var/lib/docker
@@ -92,6 +106,9 @@ docker_server__socket_group: docker
 # Be aware that granted users can easily get full root access on the docker host system!
 docker_server__socket_group_users: []
 
+
+### DOCKER CONFIGURATION
+# ---------------------------------------
 # This host configuration will be used by default for all client tools
 docker_server__clients_host: 'unix:///var/run/docker.sock'
 
@@ -117,10 +134,10 @@ docker_server__hosts: '{{ docker_server__hosts_default
 docker_server__config_default:
   data-root: '{{ docker_server__data_directory }}'
   hosts: '{{ docker_server__hosts }}'
-  icc: True
-  iptables: True
-  ip-forward: True
-  ip-masq: True
+  icc: true
+  iptables: true
+  ip-forward: true
+  ip-masq: true
   log-level: info
   log-driver: json-file
   log-opts:
@@ -145,7 +162,7 @@ docker_server__config_options: '{{ docker_server__config_default
 docker_server__maintenance_frequency: daily
 
 # Disable all maintenance cronjobs
-docker_server__maintenance_disabled: False
+docker_server__maintenance_disabled: false
 
 # Use these hook in your maintenance cronjobs entries
 docker_server__maintenance_hour: "{{ '*' if docker_server__maintenance_frequency == 'hourly' else 0 }}"
@@ -153,11 +170,11 @@ docker_server__maintenance_weekday: "{{ 'mon' if docker_server__maintenance_freq
 
 docker_server__default_maintenance_jobs:
   _docker_server_clean_dangling_images:
-    minute:  5
-    hour:    '{{ docker_server__maintenance_hour }}'
+    minute: 5
+    hour: '{{ docker_server__maintenance_hour }}'
     weekday: '{{ docker_server__maintenance_weekday }}'
-    user:    root
-    job:     /usr/bin/env sh -c 'imgs=`docker images --filter "dangling=true" --quiet`; [ -n "$imgs" ] && docker rmi $imgs'
+    user: root
+    job: /usr/bin/env sh -c 'imgs=`docker images --filter "dangling=true" --quiet`; [ -n "$imgs" ] && docker rmi $imgs'
 
 # Additionnal maintenance jobs that you can use
 docker_server__additional_maintenance_jobs: {}
@@ -168,11 +185,11 @@ docker_server__maintenance_jobs: '{{ docker_server__default_maintenance_jobs|com
 # List of GPG keys to add
 docker_server__gpg_keys:
   Debian:
-    - id:  9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+    - id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
       url: '{{ docker_server__repository_base_url }}/linux/ubuntu/gpg'
   Raspbian:
-    - id:  9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+    - id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
       url: '{{ docker_server__repository_base_url }}/linux/raspbian/gpg'
   CentOS:
-    - id:  060A61C51B558A7F742B77AAC52FEB6B621E9F35
+    - id: 060A61C51B558A7F742B77AAC52FEB6B621E9F35
       url: '{{ docker_server__repository_base_url }}/linux/centos/gpg'

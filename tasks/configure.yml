@@ -2,17 +2,17 @@
 
 - name: "Ensure socket group '{{ docker_server__socket_group }}' is present"
   group:
-    name:   '{{ docker_server__socket_group }}'
-    system: yes
-    state:  present
+    name: '{{ docker_server__socket_group }}'
+    system: true
+    state: present
   when: "'unix://' in docker_server__hosts|join(' ')"
 
 - name: Add users to socket group
   user:
-    name:   '{{ item if item is string else item.name }}'
-    append: yes
+    name: '{{ item if item is string else item.name }}'
+    append: true
     groups: '{{ docker_server__socket_group }}'
-  with_items: '{{ docker_server__socket_group_users }}'
+  with_items: '{{ docker_server__socket_group_users|list }}'
   when: "'unix://' in docker_server__hosts|join(' ') and item.state|d('present') == 'present'"
 
 # TODO to improve after https://github.com/ansible/ansible/issues/11024
@@ -23,39 +23,40 @@
 
 - name: Ensure docker directory exists
   file:
-    path:  '{{ docker_server__config_dir }}'
+    path: '{{ docker_server__config_directory }}'
     owner: root
     group: root
-    mode:  0700
+    mode: 0700
     state: directory
 
 - name: Update daemon configuration file
   copy:
+    dest: '{{ docker_server__config_file }}'
     content: '{{ docker_server__config_options|to_nice_json }}'
-    dest:    '{{ docker_server__config_file }}'
-    mode:    0640
+    mode: 0640
   notify: ['restart-docker-server']
 
 - name: Configure docker service environment variables
   template:
-    src:   docker.config.j2
-    dest:  '{{ docker_server__config_vars_file }}'
+    src: docker.environment.j2
+    dest: '{{ docker_server__service_environment }}'
     owner: root
     group: root
-    mode:  0640
+    mode: 0640
+  when: docker_server__service_environment is defined
   notify: ['restart-docker-server']
 
 - name: Configure maintenance jobs
   cron:
-    name:      '{{ item.key }}'
-    day:       '{{ item.value.day|d(omit) }}'
-    month:     '{{ item.value.month|d(omit) }}'
-    weekday:   '{{ item.value.weekday|d(omit) }}'
-    hour:      '{{ item.value.hour|d(omit) }}'
-    minute:    '{{ item.value.minute|d(omit) }}'
-    job:       '{{ item.value.job }}'
-    user:      root
+    name: '{{ item.key }}'
+    day: '{{ item.value.day|d(omit) }}'
+    month: '{{ item.value.month|d(omit) }}'
+    weekday: '{{ item.value.weekday|d(omit) }}'
+    hour: '{{ item.value.hour|d(omit) }}'
+    minute: '{{ item.value.minute|d(omit) }}'
+    job: '{{ item.value.job }}'
+    user: root
     cron_file: "{{ item.key|lower|regex_replace('\\s+', '_') }}"
-    disabled:  '{{ docker_server__maintenance_disabled }}'
-    state:     "{{ item.value.state|d('present') }}"
+    disabled: '{{ docker_server__maintenance_disabled }}'
+    state: "{{ item.value.state|d('present') }}"
   with_dict: '{{ docker_server__maintenance_jobs }}'

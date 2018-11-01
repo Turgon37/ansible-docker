@@ -3,30 +3,26 @@
 - name: Add docker repository GPG key to apt keyring
   apt_key:
     id: '{{ item.id }}'
-    url: '{{ item.url }}'
+    file: "{{ omit if item.state|d('present') != 'present' else '/tmp/docker_server__gpg-'~item.id }}"
     state: "{{ item.state|d('present') }}"
-  with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
-                    docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
-                      docker_server__gpg_keys[ansible_os_family] if (ansible_os_family in docker_server__gpg_keys) else ([])
-                    )
-                  ) }}'
-  register: _docker_server__apt_key
-  ignore_errors: '{{ http_proxy is defined }}'
-
-- name: Add repository APT key using http proxy
-  shell: 'curl --location --proxy "{{ http_proxy }}" "{{ item.url }}" | apt-key add -'
-  with_items: '{{ docker_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys) else (
-                    docker_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys) else (
-                      docker_server__gpg_keys[ansible_os_family] if (ansible_os_family in docker_server__gpg_keys) else ([])
-                    )
-                  ) }}'
-  when: _docker_server__apt_key is failed and http_proxy is defined
+  with_items: '{{
+    docker_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in docker_server__gpg_keys)
+    else (
+      docker_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in docker_server__gpg_keys)
+      else (
+        docker_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in docker_server__gpg_keys)
+        else ([])
+      )
+    )}}'
 
 - name: Compute repository url
   shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} {{ docker_server__repository_release_channel }}'
   register: _docker_server_repository_url
   changed_when: false
-  check_mode: no
+  check_mode: false
 
 - name: Add APT repository
   apt_repository:
