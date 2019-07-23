@@ -34,7 +34,7 @@ docker_server__repository_available_release_channels:
   - test
 
 # Version of docker-compose to download
-docker_server__compose_version: 1.22.0
+docker_server__compose_version: 1.24.1
 
 # If true the docker-compose tool will be installed
 docker_server__compose_state: present
@@ -58,6 +58,12 @@ docker_server__compose_source_checksums:
   1.22.0:
     Linux:
       x86_64: sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9
+  1.24.0:
+    Linux:
+      x86_64: sha256:bee6460f96339d5d978bb63d17943f773e1a140242dfa6c941d5e020a302c91b
+  1.24.1:
+    Linux:
+      x86_64: sha256:cfb3439956216b1248308141f7193776fcf4b9c9b49cbbe2fb07885678e2bb8a
 
 # Docker image to use for host on which docker-compose native tool is not available
 docker_server__compose_workaround_image: '{{ docker_server__compose_workaround_images[docker_server__compose_version][ansible_system][ansible_architecture] }}'
