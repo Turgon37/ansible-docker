@@ -6,6 +6,8 @@ Items starting with `DEPRECATE` are important deprecation notices.
 
 + Update default docker-compose to 1.24.1
 + Allow docker service to be unmanaged and allow custom service state
++ Prevent become to be propagated to localhost tasks
++ Improve docker-compose download tasks
 
 ## 1.0.0 (2018-11-01)
 
