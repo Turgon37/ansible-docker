@@ -11,6 +11,7 @@
     state: present
 
 - name: Download Docker repository GPG key into local folder
+  become: false
   get_url:
     url: '{{ item.url }}'
     dest: '/tmp/docker_server__gpg-{{ item.id }}'
