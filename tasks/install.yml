@@ -55,7 +55,7 @@
   when: item.state|d('present') == 'present'
   check_mode: false
 
-- name: Importing distribution specific install tasks
+- name: Including distribution specific install tasks (fail if not supported)
   include_tasks: '{{ file_item }}'
   with_first_found:
     - files:
