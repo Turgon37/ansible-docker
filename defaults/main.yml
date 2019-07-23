@@ -81,8 +81,14 @@ docker_server__compose_workaround_images:
 # The name of the systemd docker service
 docker_server__service_name: docker
 
+# If false, the service unit will be installed but not "activated"
+docker_server__service_managed: true
+
 # If true the docker service will be started and enabled
 docker_server__service_enabled: true
+
+# If not specified, the state will be computed from the enabled status
+# docker_server__service_state: '{{ omit }}'
 
 # If this is set to true, ansible will automatically restart docker daemon on changes
 docker_server__service_restartable: true
