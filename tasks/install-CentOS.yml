@@ -4,7 +4,6 @@
   stat:
     path: '/etc/yum.repos.d/docker-{{ docker_server__edition }}.repo'
   register: _docker_server__repo
-  check_mode: false
 
 - name: Add docker repository GPG key to yum keyring
   rpm_key:
@@ -21,10 +20,13 @@
         if (ansible_os_family in docker_server__gpg_keys)
         else ([])
       )
-    )}}'
+    ) }}'
 
 - name: Add Docker repo for Yum based hosts
-  command: 'yum-config-manager --add-repo {{ docker_server__repository_base_url }}/linux/centos/docker-{{ docker_server__edition }}.repo'
+  command: >-
+    yum-config-manager
+    --add-repo
+    {{ docker_server__repository_base_url }}/linux/centos/docker-{{ docker_server__edition }}.repo
   when: not _docker_server__repo.stat.exists
 
 - name: Enable selected Docker repository

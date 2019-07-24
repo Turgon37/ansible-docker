@@ -16,10 +16,15 @@
         if (ansible_os_family in docker_server__gpg_keys)
         else ([])
       )
-    )}}'
+    ) }}'
 
 - name: Compute repository url
-  shell: 'echo deb [arch=$(dpkg --print-architecture)] {{ docker_server__repository_base_url }}/linux/debian {{ ansible_distribution_release|lower }} {{ docker_server__repository_release_channel }}'
+  shell: >-
+    echo
+    deb [arch=$(dpkg --print-architecture)]
+    {{ docker_server__repository_base_url }}/linux/debian
+    {{ ansible_distribution_release|lower }}
+    {{ docker_server__repository_release_channel }}
   register: _docker_server_repository_url
   changed_when: false
   check_mode: false

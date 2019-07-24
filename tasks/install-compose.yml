@@ -1,9 +1,24 @@
 ---
 
+- name: Check binaries checksum availability
+  fail:
+    msg: >-
+      The checksum for current version is missing from 'docker_server__compose_source_checksums' hash.
+      Please use a command like this to produce it
+      'curl -L {{ docker_server__compose_url }} | sha256sum'
+      and add it into
+      docker_server__compose_source_checksums[{{ docker_server__compose_version }}][{{ ansible_system }}][{{ ansible_architecture }}]
+  when: docker_server__compose_source_checksums|length > 0
+    and (
+      docker_server__compose_version not in docker_server__compose_source_checksums
+      or ansible_system not in docker_server__compose_source_checksums[docker_server__compose_version]
+      or ansible_architecture not in docker_server__compose_source_checksums[docker_server__compose_version][ansible_system]
+    )
+
 - name: Download Docker compose tool to local folder for x86_64 machines
   get_url:
     url: '{{ docker_server__compose_url }}'
-    dest: '/tmp/docker_server__docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
+    dest: '/tmp/docker_server__docker-compose-{{ docker_server__compose_version }}-{{ ansible_system }}-{{ ansible_architecture }}'
     mode: 0755
     checksum:
       '{{ docker_server__compose_source_checksums[docker_server__compose_version][ansible_system][ansible_architecture]
@@ -19,11 +34,13 @@
 
 - name: Upload docker-compose to server
   copy:
-    src: '/tmp/docker_server__docker-compose-{{ ansible_system }}-{{ ansible_architecture }}'
+    src: '/tmp/docker_server__docker-compose-{{ docker_server__compose_version }}-{{ ansible_system }}-{{ ansible_architecture }}'
     dest: '{{ docker_server__compose_path }}'
+    owner: root
+    group: root
+    mode: 0755
   when: ansible_architecture in docker_server__compose_architectures
     and docker_server__compose_state|d('present') == 'present'
-  check_mode: false
 
 - name: Install Docker compose workaround tool for non x86_64 machines
   template:

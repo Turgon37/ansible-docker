@@ -43,7 +43,8 @@
   service:
     name: '{{ docker_server__service_name }}'
     enabled: '{{ docker_server__service_enabled|bool }}'
-    state: "{{ docker_server__service_enabled|bool|ternary('started', 'stopped') }}"
+    state: "{{ docker_server__service_state|d(docker_server__service_enabled|bool|ternary('started', 'stopped')) }}"
+  when: docker_server__service_managed|bool
 
 # restart feature
 - name: Test if docker need to be restart
