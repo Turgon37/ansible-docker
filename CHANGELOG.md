@@ -2,6 +2,10 @@
 
 Items starting with `DEPRECATE` are important deprecation notices.
 
+## 1.2.0 (2019-07-24)
+
++ Remove systemd service command line options from environment file
+
 ## 1.1.0 (2019-07-24)
 
 + Update default docker-compose to 1.24.1
