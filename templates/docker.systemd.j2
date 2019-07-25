@@ -18,7 +18,9 @@ Type=notify
 # Remove must restart stamp file
 ExecStartPre=-/usr/bin/env rm -f {{ docker_server__service_restart_stamp_file }}
 {% endif %}
-ExecStart={{ docker_server__service_executable }} $OPTIONS
+ExecStart={{ docker_server__service_executable }} \
+    --config-file={{ docker_server__config_file }} \
+    --group {{ docker_server__socket_group }}
 ExecReload=/bin/kill -s HUP $MAINPID
 LimitNOFILE=1048576
 # Having non-zero Limit*s causes performance problems due to accounting overhead
